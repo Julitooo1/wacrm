@@ -45,10 +45,12 @@
 // can't ${gateReason}"`.
 // ============================================================
 
+import { useUiText } from "@/i18n/ui-text";
 import type { ComponentProps, ReactNode } from "react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+
 
 interface GatedButtonProps extends Omit<ComponentProps<typeof Button>, "title"> {
   /** False → button is disabled and the wrapper span shows the
@@ -74,9 +76,10 @@ export function GatedButton({
   children,
   ...rest
 }: GatedButtonProps) {
-  const effectivelyDisabled = disabled || !canAct;
+  const uiText = useUiText();
+const effectivelyDisabled = disabled || !canAct;
   const tooltip = !canAct && gateReason
-    ? `Read-only — your role can't ${gateReason}`
+    ? uiText(uiText(`Read-only — your role can't ${uiText(gateReason)}`))
     : title;
 
   return (

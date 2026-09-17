@@ -26,6 +26,8 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Loader2, AlertTriangle } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useUiText } from "@/i18n/ui-text";
+
 
 interface ContactFormProps {
   open: boolean;
@@ -46,6 +48,7 @@ export function ContactForm({
   onSaved,
   onViewExisting,
 }: ContactFormProps) {
+  const uiText = useUiText();
   const t = useTranslations('Contacts.form');
   const supabase = createClient();
   const { accountId } = useAuth();
@@ -126,14 +129,14 @@ export function ContactForm({
     e.preventDefault();
 
     if (!phone.trim()) {
-      toast.error(t('phoneRequired'));
+      toast.error(uiText(t('phoneRequired')));
       return;
     }
 
     // Hard-block an exact duplicate on create (the DB unique index is
     // the real backstop; this avoids a round-trip + a raw error toast).
     if (!isEdit && dupMatch?.exact) {
-      toast.error(t('toastConflict'));
+      toast.error(uiText(t('toastConflict')));
       return;
     }
 
@@ -144,8 +147,8 @@ export function ContactForm({
         data: { session },
       } = await supabase.auth.getSession();
       const user = session?.user;
-      if (!user) throw new Error('Not authenticated');
-      if (!accountId) throw new Error('Your profile is not linked to an account.');
+      if (!user) throw new Error(uiText("Not authenticated"));
+      if (!accountId) throw new Error(uiText("Your profile is not linked to an account."));
 
       let contactId = contact?.id;
 
@@ -193,7 +196,7 @@ export function ContactForm({
         }
       }
 
-      toast.success(isEdit ? t('toastSuccessEdit') : t('toastSuccessAdd'));
+      toast.success(uiText(isEdit ? t('toastSuccessEdit') : t('toastSuccessAdd')));
       onOpenChange(false);
       onSaved();
     } catch (err: unknown) {
@@ -202,7 +205,7 @@ export function ContactForm({
       // normalizes equal). Surface it as the friendly duplicate notice
       // and, for new contacts, point the user at the existing record.
       if (isUniqueViolation(err)) {
-        toast.error(t('toastConflict'));
+        toast.error(uiText(t('toastConflict')));
         if (!isEdit && accountId) {
           const existing = await findExistingContact(
             supabase,
@@ -214,7 +217,7 @@ export function ContactForm({
         return;
       }
       const message = err instanceof Error ? err.message : t('toastError');
-      toast.error(message);
+      toast.error(uiText(message));
     } finally {
       setSaving(false);
     }

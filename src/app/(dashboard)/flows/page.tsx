@@ -33,6 +33,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useUiText } from "@/i18n/ui-text";
+
 
 /**
  * Flows list page.
@@ -83,6 +85,7 @@ const TEMPLATE_ICONS = {
 } as const;
 
 export default function FlowsPage() {
+  const uiText = useUiText();
   const router = useRouter();
   const canCreate = useCan("send-messages");
   const t = useTranslations("Flows.list");
@@ -102,7 +105,7 @@ export default function FlowsPage() {
           fetch("/api/flows/templates"),
         ]);
         if (!flowsRes.ok) {
-          throw new Error(`Failed to load flows: ${flowsRes.status}`);
+          throw new Error(uiText(`Failed to load flows: ${flowsRes.status}`));
         }
         const flowsJson = (await flowsRes.json()) as { flows: FlowRow[] };
         if (!cancelled) setFlows(flowsJson.flows ?? []);
@@ -117,7 +120,7 @@ export default function FlowsPage() {
       } catch (err) {
         if (!cancelled) {
           console.error(err);
-          toast.error(t("loadError"));
+          toast.error(uiText(t("loadError")));
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -126,7 +129,7 @@ export default function FlowsPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [uiText]);
 
   async function handleCreate() {
     if (!newName.trim()) return;
@@ -141,14 +144,14 @@ export default function FlowsPage() {
           trigger_config: { keywords: [] },
         }),
       });
-      if (!res.ok) throw new Error(`Create failed: ${res.status}`);
+      if (!res.ok) throw new Error(uiText(`Create failed: ${res.status}`));
       const json = (await res.json()) as { flow: FlowRow };
       setCreateOpen(false);
       setNewName("");
       router.push(`/flows/${json.flow.id}`);
     } catch (err) {
       console.error(err);
-      toast.error(t("createError"));
+      toast.error(uiText(t("createError")));
     } finally {
       setCreating(false);
     }
@@ -164,14 +167,14 @@ export default function FlowsPage() {
       });
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
-        throw new Error(json.error ?? `Clone failed: ${res.status}`);
+        throw new Error(json.error ?? uiText(`Clone failed: ${res.status}`));
       }
       const json = (await res.json()) as { flow: FlowRow };
       setCreateOpen(false);
       router.push(`/flows/${json.flow.id}`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : t("cloneError");
-      toast.error(msg);
+      toast.error(uiText(msg));
     } finally {
       setCreating(false);
     }
@@ -182,12 +185,12 @@ export default function FlowsPage() {
     if (!yes) return;
     try {
       const res = await fetch(`/api/flows/${flow.id}`, { method: "DELETE" });
-      if (!res.ok) throw new Error(`Delete failed: ${res.status}`);
+      if (!res.ok) throw new Error(uiText(`Delete failed: ${res.status}`));
       setFlows((prev) => prev.filter((f) => f.id !== flow.id));
-      toast.success(t("deleteSuccess"));
+      toast.success(uiText(t("deleteSuccess")));
     } catch (err) {
       console.error(err);
-      toast.error(t("deleteError"));
+      toast.error(uiText(t("deleteError")));
     }
   }
 
@@ -274,10 +277,10 @@ export default function FlowsPage() {
                     >
                       <Icon className="h-5 w-5 text-primary" />
                       <span className="text-sm font-semibold text-popover-foreground">
-                        {template.name}
+                        {uiText(template.name)}
                       </span>
                       <span className="text-xs leading-relaxed text-muted-foreground">
-                        {template.description}
+                        {uiText(template.description)}
                       </span>
                       <span className="mt-auto border-t border-border pt-2 text-[11px] text-muted-foreground">
                         {t("nodeCount", { count: template.node_count })}

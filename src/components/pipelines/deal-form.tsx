@@ -33,6 +33,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { useUiText } from "@/i18n/ui-text";
+
 
 interface DealFormProps {
   open: boolean;
@@ -53,6 +55,7 @@ export function DealForm({
   defaultStageId,
   onSaved,
 }: DealFormProps) {
+  const uiText = useUiText();
   const t = useTranslations("Pipelines.form");
   const supabase = createClient();
   const { accountId, defaultCurrency } = useAuth();
@@ -153,7 +156,7 @@ export function DealForm({
 
   async function handleSave() {
     if (!title.trim() || !contactId || !stageId) {
-      toast.error(t("toastRequired"));
+      toast.error(uiText(t("toastRequired")));
       return;
     }
     setSaving(true);
@@ -176,7 +179,7 @@ export function DealForm({
         .update(payload)
         .eq("id", deal.id);
       if (error) {
-        toast.error(t("toastFailedSave"));
+        toast.error(uiText(t("toastFailedSave")));
         setSaving(false);
         return;
       }
@@ -186,12 +189,12 @@ export function DealForm({
       } = await supabase.auth.getSession();
       const user = session?.user;
       if (!user) {
-        toast.error(t("toastNotSignedIn"));
+        toast.error(uiText(t("toastNotSignedIn")));
         setSaving(false);
         return;
       }
       if (!accountId) {
-        toast.error(t("toastNotLinked"));
+        toast.error(uiText(t("toastNotLinked")));
         setSaving(false);
         return;
       }
@@ -199,14 +202,14 @@ export function DealForm({
         .from("deals")
         .insert({ ...payload, user_id: user.id, account_id: accountId, status: "open" });
       if (error) {
-        toast.error(t("toastFailedCreate"));
+        toast.error(uiText(t("toastFailedCreate")));
         setSaving(false);
         return;
       }
     }
 
     setSaving(false);
-    toast.success(deal ? t("toastUpdated") : t("toastCreated"));
+    toast.success(uiText(deal ? t("toastUpdated") : t("toastCreated")));
     onOpenChange(false);
     onSaved();
   }
@@ -220,11 +223,11 @@ export function DealForm({
       .eq("id", deal.id);
     setStatusAction(null);
     if (error) {
-      toast.error(t("toastFailedStatus"));
+      toast.error(uiText(t("toastFailedStatus")));
       return;
     }
     toast.success(
-      status === "won" ? t("toastMarkedWon") : status === "lost" ? t("toastMarkedLost") : t("toastReopened"),
+      uiText(status === "won" ? t("toastMarkedWon") : status === "lost" ? t("toastMarkedLost") : t("toastReopened")),
     );
     onOpenChange(false);
     onSaved();
@@ -236,10 +239,10 @@ export function DealForm({
     const { error } = await supabase.from("deals").delete().eq("id", deal.id);
     setDeleting(false);
     if (error) {
-      toast.error(t("toastFailedDelete"));
+      toast.error(uiText(t("toastFailedDelete")));
       return;
     }
-    toast.success(t("toastDeleted"));
+    toast.success(uiText(t("toastDeleted")));
     setConfirmDelete(false);
     onOpenChange(false);
     onSaved();

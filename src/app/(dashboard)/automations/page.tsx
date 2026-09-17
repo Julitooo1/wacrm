@@ -43,6 +43,8 @@ import {
 import { AUTOMATION_TEMPLATES, type TemplateSlug } from "@/lib/automations/templates"
 import { triggerMeta, formatRelative } from "@/lib/automations/trigger-meta"
 import { cn } from "@/lib/utils"
+import { useUiText } from "@/i18n/ui-text";
+
 
 const TEMPLATE_ORDER: TemplateSlug[] = [
   "welcome_message",
@@ -59,6 +61,7 @@ const TEMPLATE_ICON: Record<TemplateSlug, typeof Zap> = {
 }
 
 export default function AutomationsPage() {
+  const uiText = useUiText();
   const router = useRouter()
   const canCreate = useCan("send-messages")
   const t = useTranslations("Automations.list")
@@ -77,7 +80,7 @@ export default function AutomationsPage() {
       if (fetchErr) throw fetchErr
       setAutomations((data ?? []) as Automation[])
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to load automations")
+      setError(err instanceof Error ? err.message : uiText("Failed to load automations"))
     }
   }
 
@@ -101,20 +104,20 @@ export default function AutomationsPage() {
         prev?.map((x) => (x.id === a.id ? { ...x, is_active: !next } : x)) ?? prev,
       )
       const body = await res.json().catch(() => ({}))
-      toast.error(body?.error ?? t("toasts.updateError"))
+      toast.error(uiText(body?.error ?? t("toasts.updateError")))
       return
     }
-    toast.success(next ? t("toasts.activated") : t("toasts.paused"))
+    toast.success(uiText(next ? t("toasts.activated") : t("toasts.paused")))
   }
 
   async function duplicate(a: Automation) {
     const res = await fetch(`/api/automations/${a.id}/duplicate`, { method: "POST" })
     if (!res.ok) {
       const body = await res.json().catch(() => ({}))
-      toast.error(body?.error ?? t("toasts.duplicateError"))
+      toast.error(uiText(body?.error ?? t("toasts.duplicateError")))
       return
     }
-    toast.success(t("toasts.duplicated"))
+    toast.success(uiText(t("toasts.duplicated")))
     load()
   }
 
@@ -125,10 +128,10 @@ export default function AutomationsPage() {
     setDeleting(false)
     if (!res.ok) {
       const body = await res.json().catch(() => ({}))
-      toast.error(body?.error ?? t("toasts.deleteError"))
+      toast.error(uiText(body?.error ?? t("toasts.deleteError")))
       return
     }
-    toast.success(t("toasts.deleted"))
+    toast.success(uiText(t("toasts.deleted")))
     setPendingDelete(null)
     load()
   }
@@ -194,8 +197,8 @@ export default function AutomationsPage() {
                   <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary group-hover:bg-primary/15">
                     <Icon className="h-5 w-5" />
                   </div>
-                  <div className="text-sm font-semibold text-foreground">{t.name}</div>
-                  <p className="mt-1 text-xs text-muted-foreground">{t.description}</p>
+                  <div className="text-sm font-semibold text-foreground">{uiText(t.name)}</div>
+                  <p className="mt-1 text-xs text-muted-foreground">{uiText(t.description)}</p>
                 </button>
               )
             })}
@@ -278,6 +281,7 @@ function AutomationCard({
   onDelete: () => void
   t: ReturnType<typeof useTranslations>
 }) {
+  const uiText = useUiText();
   const meta = triggerMeta(automation.trigger_type)
   return (
     <li className="rounded-xl border border-border bg-card transition-colors hover:border-border">
@@ -299,7 +303,7 @@ function AutomationCard({
               {automation.name}
             </span>
             {automation.is_active && (
-              <span className="relative flex h-2 w-2" aria-label="active">
+              <span className="relative flex h-2 w-2" aria-label={uiText("active")}>
                 <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-primary opacity-75" />
                 <span className="relative inline-flex h-2 w-2 rounded-full bg-primary" />
               </span>
@@ -315,7 +319,7 @@ function AutomationCard({
                 meta.pillClass,
               )}
             >
-              {meta.label}
+              {uiText(meta.label)}
             </span>
             <span className="tabular-nums">
               {automation.execution_count === 1
@@ -336,7 +340,7 @@ function AutomationCard({
 
           <DropdownMenu>
             <DropdownMenuTrigger
-              aria-label="Open menu"
+              aria-label={uiText("Open menu")}
               className="inline-flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground data-[popup-open]:bg-muted"
             >
               <MoreVertical className="h-4 w-4" />

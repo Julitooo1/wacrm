@@ -17,6 +17,10 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { useTranslations } from 'next-intl';
 import { SettingsPanelHead } from './settings-panel-head';
+import { useUiText } from "@/i18n/ui-text";
+import { useDateLocale } from "@/i18n/date-locale";
+
+
 
 const MAX_AVATAR_BYTES = 2 * 1024 * 1024;
 const ALLOWED_MIME = new Set([
@@ -32,6 +36,8 @@ const ALLOWED_MIME = new Set([
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function ProfileForm() {
+  const { localeTag } = useDateLocale();
+  const uiText = useUiText();
   const t = useTranslations('Settings.profile');
   const { user, profile, refreshProfile } = useAuth();
   const supabase = createClient();
@@ -72,13 +78,13 @@ export function ProfileForm() {
     if (!file) return;
 
     if (!ALLOWED_MIME.has(file.type)) {
-      toast.error(t('unsupportedImage'), {
+      toast.error(uiText(t('unsupportedImage')), {
         description: t('unsupportedImageDesc'),
       });
       return;
     }
     if (file.size > MAX_AVATAR_BYTES) {
-      toast.error(t('imageTooLarge'), {
+      toast.error(uiText(t('imageTooLarge')), {
         description: t('imageTooLargeDesc'),
       });
       return;
@@ -103,12 +109,12 @@ export function ProfileForm() {
 
     const trimmedName = fullName.trim();
     if (!trimmedName) {
-      toast.error(t('nameRequired'));
+      toast.error(uiText(t('nameRequired')));
       return;
     }
     const trimmedEmail = email.trim();
     if (!EMAIL_RE.test(trimmedEmail)) {
-      toast.error(t('invalidEmail'));
+      toast.error(uiText(t('invalidEmail')));
       return;
     }
 
@@ -163,8 +169,8 @@ export function ProfileForm() {
         });
         if (emailError) {
           // Partial success: name/avatar saved but email didn't.
-          toast.success(t('profileSaved'));
-          toast.error(t('emailChangeFailed', { message: emailError.message }));
+          toast.success(uiText(t('profileSaved')));
+          toast.error(uiText(t('emailChangeFailed', { message: emailError.message })));
           setSaving(false);
           await refreshProfile();
           return;
@@ -179,13 +185,13 @@ export function ProfileForm() {
       await refreshProfile();
 
       toast.success(
-        emailSent
+        uiText(emailSent
           ? t('profileSavedEmailCheck')
-          : t('profileSaved'),
+          : t('profileSaved')),
       );
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Unknown error';
-      toast.error(msg);
+      const msg = err instanceof Error ? err.message : uiText("Unknown error");
+      toast.error(uiText(msg));
     } finally {
       setSaving(false);
     }
@@ -199,7 +205,7 @@ export function ProfileForm() {
       removeAvatar);
 
   const joined = user?.created_at
-    ? new Date(user.created_at).toLocaleDateString(undefined, {
+    ? new Date(user.created_at).toLocaleDateString(localeTag, {
         year: 'numeric',
         month: 'long',
         day: 'numeric',

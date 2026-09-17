@@ -17,10 +17,13 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { useTranslations } from 'next-intl';
+import { useUiText } from "@/i18n/ui-text";
+
 
 const MIN_PASSWORD = 8;
 
 export function PasswordForm() {
+  const uiText = useUiText();
   const t = useTranslations('Settings.profile');
   const { profile } = useAuth();
   const supabase = createClient();
@@ -34,7 +37,7 @@ export function PasswordForm() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!profile?.email) {
-      toast.error(t('cannotChangeNoEmail'));
+      toast.error(uiText(t('cannotChangeNoEmail')));
       return;
     }
     if (next.length < MIN_PASSWORD) {
@@ -58,7 +61,7 @@ export function PasswordForm() {
         password: current,
       });
       if (signInError) {
-        toast.error(t('currentPasswordIncorrect'));
+        toast.error(uiText(t('currentPasswordIncorrect')));
         return;
       }
 
@@ -66,17 +69,17 @@ export function PasswordForm() {
         password: next,
       });
       if (updateError) {
-        toast.error(t('passwordUpdateFailed', { message: updateError.message }));
+        toast.error(uiText(t('passwordUpdateFailed', { message: updateError.message })));
         return;
       }
 
       setCurrent('');
       setNext('');
       setConfirm('');
-      toast.success(t('passwordUpdated'));
+      toast.success(uiText(t('passwordUpdated')));
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Unknown error';
-      toast.error(msg);
+      const msg = err instanceof Error ? err.message : uiText("Unknown error");
+      toast.error(uiText(msg));
     } finally {
       setSaving(false);
     }

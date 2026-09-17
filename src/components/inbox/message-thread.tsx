@@ -54,6 +54,9 @@ import { AiThreadBanner } from "./ai-thread-banner";
 import { buildReplyPreview } from "./reply-quote";
 import { renderTemplateBody } from "@/lib/whatsapp/template-body";
 import { toast } from "sonner";
+import { useUiText } from "@/i18n/ui-text";
+import { useLocale } from "next-intl";
+
 
 interface ReplyDraft {
   id: string;
@@ -107,11 +110,11 @@ interface MessageThreadProps {
   onToggleContactPanel?: () => void;
 }
 
-function formatDateSeparator(dateStr: string, t: ReturnType<typeof useTranslations>): string {
+function formatDateSeparator(dateStr: string, t: ReturnType<typeof useTranslations>, locale: string): string {
   const date = new Date(dateStr);
   if (isToday(date)) return t("today");
   if (isYesterday(date)) return t("yesterday");
-  return format(date, "MMMM d, yyyy");
+  return date.toLocaleDateString(locale, { month: "long", day: "numeric", year: "numeric" });
 }
 
 function groupMessagesByDate(messages: Message[]) {
@@ -164,6 +167,8 @@ export function MessageThread({
   contactPanelOpen,
   onToggleContactPanel,
 }: MessageThreadProps) {
+  const uiText = useUiText();
+  const localeTag = useLocale();
   const t = useTranslations("Inbox.messageThread");
   const tTimer = useTranslations("Inbox.sessionTimer");
   const tQuote = useTranslations("Inbox.replyQuote");
@@ -500,7 +505,7 @@ export function MessageThread({
         if (!res.ok) {
           const reason = payload?.error || `HTTP ${res.status}`;
           console.error("Failed to send message:", reason);
-          toast.error(`Failed to send: ${reason}`);
+          toast.error(uiText(`Failed to send: ${reason}`));
           // Mark the optimistic bubble as failed so the user sees what happened
           onUpdateMessage(tempId, { status: "failed" });
           return;
@@ -512,12 +517,12 @@ export function MessageThread({
         onUpdateMessage(tempId, { status: "sent" });
       } catch (err) {
         console.error("Failed to send message:", err);
-        const reason = err instanceof Error ? err.message : "network error";
-        toast.error(`Failed to send: ${reason}`);
+        const reason = err instanceof Error ? err.message : uiText("network error");
+        toast.error(uiText(`Failed to send: ${reason}`));
         onUpdateMessage(tempId, { status: "failed" });
       }
     },
-    [conversation, onNewMessage, onUpdateMessage]
+    [conversation, onNewMessage, onUpdateMessage, uiText]
   );
 
   const handleSendMedia = useCallback(
@@ -529,7 +534,7 @@ export function MessageThread({
       // kinds use the caption as-is. Audio carries no caption.
       const contentText =
         payload.kind === "document"
-          ? payload.caption || payload.filename || "Document"
+          ? payload.caption || payload.filename || uiText("Document")
           : payload.caption;
 
       const tempId = `temp-${Date.now()}`;
@@ -566,7 +571,7 @@ export function MessageThread({
         if (!res.ok) {
           const reason = data?.error || `HTTP ${res.status}`;
           console.error("Failed to send media:", reason);
-          toast.error(`Failed to send: ${reason}`);
+          toast.error(uiText(`Failed to send: ${reason}`));
           onUpdateMessage(tempId, { status: "failed" });
           // The upload never reached the recipient — GC the orphaned
           // object rather than leaving it in the public bucket forever.
@@ -577,13 +582,13 @@ export function MessageThread({
         onUpdateMessage(tempId, { status: "sent" });
       } catch (err) {
         console.error("Failed to send media:", err);
-        const reason = err instanceof Error ? err.message : "network error";
-        toast.error(`Failed to send: ${reason}`);
+        const reason = err instanceof Error ? err.message : uiText("network error");
+        toast.error(uiText(`Failed to send: ${reason}`));
         onUpdateMessage(tempId, { status: "failed" });
         void deleteAccountMedia(CHAT_MEDIA_BUCKET, payload.path).catch(() => {});
       }
     },
-    [conversation, onNewMessage, onUpdateMessage],
+    [conversation, onNewMessage, onUpdateMessage, uiText],
   );
 
   const handleSendInteractive = useCallback(
@@ -623,7 +628,7 @@ export function MessageThread({
         if (!res.ok) {
           const reason = data?.error || `HTTP ${res.status}`;
           console.error("Failed to send interactive message:", reason);
-          toast.error(`Failed to send: ${reason}`);
+          toast.error(uiText(`Failed to send: ${reason}`));
           onUpdateMessage(tempId, { status: "failed" });
           return;
         }
@@ -631,12 +636,12 @@ export function MessageThread({
         onUpdateMessage(tempId, { status: "sent" });
       } catch (err) {
         console.error("Failed to send interactive message:", err);
-        const reason = err instanceof Error ? err.message : "network error";
-        toast.error(`Failed to send: ${reason}`);
+        const reason = err instanceof Error ? err.message : uiText("network error");
+        toast.error(uiText(`Failed to send: ${reason}`));
         onUpdateMessage(tempId, { status: "failed" });
       }
     },
-    [conversation, onNewMessage, onUpdateMessage],
+    [conversation, onNewMessage, onUpdateMessage, uiText],
   );
 
   const handleStatusChange = useCallback(
@@ -712,7 +717,7 @@ export function MessageThread({
         if (!res.ok) {
           const reason = payload?.error || `HTTP ${res.status}`;
           console.error("Failed to send template:", reason);
-          toast.error(`Failed to send template: ${reason}`);
+          toast.error(uiText(`Failed to send template: ${reason}`));
           onUpdateMessage(tempId, { status: "failed" });
           return;
         }
@@ -720,12 +725,12 @@ export function MessageThread({
         onUpdateMessage(tempId, { status: "sent" });
       } catch (err) {
         console.error("Failed to send template:", err);
-        const reason = err instanceof Error ? err.message : "network error";
-        toast.error(`Failed to send template: ${reason}`);
+        const reason = err instanceof Error ? err.message : uiText("network error");
+        toast.error(uiText(`Failed to send template: ${reason}`));
         onUpdateMessage(tempId, { status: "failed" });
       }
     },
-    [conversation, onNewMessage, onUpdateMessage],
+    [conversation, onNewMessage, onUpdateMessage, uiText],
   );
 
   // Build a quick id → Message map so reply quotes can be rendered without
@@ -759,9 +764,9 @@ export function MessageThread({
     (m: Message): string => {
       const isAgentMsg =
         m.sender_type === "agent" || m.sender_type === "bot";
-      return isAgentMsg ? "You" : contactDisplayName;
+      return isAgentMsg ? uiText("You") : contactDisplayName;
     },
-    [contactDisplayName],
+    [contactDisplayName, uiText],
   );
 
   const handleStartReply = useCallback(
@@ -786,7 +791,7 @@ export function MessageThread({
         return;
       }
       if (messageId.startsWith("temp-")) {
-        toast.error("Wait for the message to finish sending");
+        toast.error(uiText("Wait for the message to finish sending"));
         return;
       }
 
@@ -831,12 +836,12 @@ export function MessageThread({
           throw new Error(payload?.error || `HTTP ${res.status}`);
         }
       } catch (err) {
-        const reason = err instanceof Error ? err.message : "network error";
-        toast.error(`Reaction failed: ${reason}`);
+        const reason = err instanceof Error ? err.message : uiText("network error");
+        toast.error(uiText(`Reaction failed: ${reason}`));
         setReactions(snapshot);
       }
     },
-    [conversation, user?.id],
+    [conversation, user?.id, uiText],
   );
 
   const handleAssignChange = useCallback(
@@ -851,13 +856,13 @@ export function MessageThread({
 
       if (error) {
         console.error("Failed to update assignment:", error);
-        toast.error("Failed to update assignment");
+        toast.error(uiText("Failed to update assignment"));
         return;
       }
 
       onAssignChange(conversation.id, agentId);
     },
-    [conversation, onAssignChange],
+    [conversation, onAssignChange, uiText],
   );
 
   // Empty state — same WhatsApp-style doodle background as the active
@@ -1099,7 +1104,7 @@ export function MessageThread({
                 {/* Date separator */}
                 <div className="mb-4 flex items-center justify-center">
                   <span className="rounded-full bg-muted px-3 py-1 text-[10px] font-medium text-muted-foreground">
-                    {formatDateSeparator(group.date, t)}
+                    {formatDateSeparator(group.date, t, localeTag)}
                   </span>
                 </div>
                 {/* Messages */}
@@ -1113,7 +1118,7 @@ export function MessageThread({
                           authorLabel:
                             parent.sender_type === "agent" || parent.sender_type === "bot"
                               ? t("me") 
-                              : contact?.name || contact?.phone || "Unknown",
+                              : contact?.name || contact?.phone || uiText("Unknown"),
                           preview: buildReplyPreview(parent, tQuote),
                         }
                       : null;

@@ -1,5 +1,6 @@
 "use client"
 
+import { useUiText } from "@/i18n/ui-text";
 import { Clock } from 'lucide-react'
 import { DOW_SHORT_MON_FIRST } from '@/lib/dashboard/date-utils'
 import type { ResponseTimeSummary } from '@/lib/dashboard/types'
@@ -25,13 +26,15 @@ import { useTranslations } from 'next-intl'
 // per weekday". Tremor expects categories as the second tuple in
 // the row object, so we shape the buckets into
 // `{ day: 'Mon', 'Avg minutes': 4.2 }` rows below.
-const CATEGORY = 'Avg minutes'
+
 
 export function ResponseTimeChart({
   data,
   loading,
   thresholdMinutes = 5,
 }: ResponseTimeChartProps) {
+  const uiText = useUiText();
+  const CATEGORY = uiText("Avg minutes");
   const t = useTranslations('Dashboard.responseTimeChart')
   const hasData = data?.buckets.some((b) => b.avgMinutes != null) ?? false
 
@@ -41,7 +44,7 @@ export function ResponseTimeChart({
   // surface "no samples" copy without losing the data shape.
   const chartData =
     data?.buckets.map((b, i) => ({
-      day: DOW_SHORT_MON_FIRST[i],
+      day: uiText(DOW_SHORT_MON_FIRST[i]),
       [CATEGORY]: b.avgMinutes ?? 0,
       samples: b.samples,
     })) ?? []

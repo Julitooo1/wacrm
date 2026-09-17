@@ -57,6 +57,10 @@ import { CustomFieldsManager } from '@/components/contacts/custom-fields-manager
 import { useCan } from '@/hooks/use-can';
 import { GatedButton } from '@/components/ui/gated-button';
 import { useTranslations } from 'next-intl';
+import { useUiText } from "@/i18n/ui-text";
+import { useDateLocale } from "@/i18n/date-locale";
+
+
 
 const PAGE_SIZE = 25;
 
@@ -65,6 +69,8 @@ interface ContactWithTags extends Contact {
 }
 
 export default function ContactsPage() {
+  const { localeTag } = useDateLocale();
+  const uiText = useUiText();
   const t = useTranslations('Contacts.page');
   const supabase = createClient();
   const canEdit = useCan('send-messages');
@@ -146,7 +152,7 @@ export default function ContactsPage() {
       });
       if (seq !== fetchSeq.current) return; // superseded by a newer fetch
       if (error) {
-        toast.error(t('toastFailedLoad'));
+        toast.error(uiText(t('toastFailedLoad')));
         setLoading(false);
         return;
       }
@@ -168,7 +174,7 @@ export default function ContactsPage() {
       const { data, count: exactCount, error } = await query;
       if (seq !== fetchSeq.current) return; // superseded by a newer fetch
       if (error) {
-        toast.error(t('toastFailedLoad'));
+        toast.error(uiText(t('toastFailedLoad')));
         setLoading(false);
         return;
       }
@@ -207,7 +213,7 @@ export default function ContactsPage() {
 
     setContacts(enriched);
     setLoading(false);
-  }, [supabase, page, search, selectedTagIds, tagsMap, t]);
+  }, [supabase, page, search, selectedTagIds, tagsMap, t, uiText]);
 
   // Load-once-on-mount-ish data fetches. Each setter inside runs
   // inside an async promise completion (Supabase await), not
@@ -259,9 +265,9 @@ export default function ContactsPage() {
       .eq('id', deleteTarget.id);
 
     if (error) {
-      toast.error(t('toastFailedDelete'));
+      toast.error(uiText(t('toastFailedDelete')));
     } else {
-      toast.success(t('toastDeleted'));
+      toast.success(uiText(t('toastDeleted')));
       fetchContacts();
     }
 
@@ -303,9 +309,9 @@ export default function ContactsPage() {
     const { error } = await supabase.from('contacts').delete().in('id', ids);
 
     if (error) {
-      toast.error(t('toastBulkFailedDelete'));
+      toast.error(uiText(t('toastBulkFailedDelete')));
     } else {
-      toast.success(t('toastBulkDeleted', { count: ids.length }));
+      toast.success(uiText(t('toastBulkDeleted', { count: ids.length })));
       setSelected(new Set());
       fetchContacts();
     }
@@ -445,7 +451,7 @@ export default function ContactsPage() {
                       <Checkbox
                         checked={selectedTagIds.includes(tag.id)}
                         onCheckedChange={() => toggleTagFilter(tag.id)}
-                        aria-label={`Filter by ${tag.name}`}
+                        aria-label={uiText(`Filter by ${tag.name}`)}
                       />
                       <span
                         className="size-2.5 shrink-0 rounded-full"
@@ -480,7 +486,7 @@ export default function ContactsPage() {
                   {tag.name}
                   <button
                     onClick={() => toggleTagFilter(id)}
-                    aria-label={`Remove ${tag.name} filter`}
+                    aria-label={uiText(`Remove ${tag.name} filter`)}
                     className="hover:opacity-70"
                   >
                     <X className="size-3" />
@@ -538,7 +544,7 @@ export default function ContactsPage() {
                   indeterminate={!allOnPageSelected && someOnPageSelected}
                   onCheckedChange={toggleSelectAll}
                   disabled={contacts.length === 0}
-                  aria-label="Select all contacts on this page"
+                  aria-label={uiText("Select all contacts on this page")}
                 />
               </TableHead>
               <TableHead className="text-muted-foreground">{t('tableColumns.name')}</TableHead>
@@ -597,7 +603,7 @@ export default function ContactsPage() {
                     <Checkbox
                       checked={selected.has(contact.id)}
                       onCheckedChange={() => toggleSelect(contact.id)}
-                      aria-label={`Select ${contact.name || contact.phone}`}
+                      aria-label={uiText(`Select ${contact.name || contact.phone}`)}
                     />
                   </TableCell>
                   <TableCell className="text-foreground font-medium">
@@ -638,7 +644,7 @@ export default function ContactsPage() {
                     </div>
                   </TableCell>
                   <TableCell className="text-muted-foreground text-xs hidden lg:table-cell">
-                    {new Date(contact.created_at).toLocaleDateString('en-US', {
+                    {new Date(contact.created_at).toLocaleDateString(localeTag, {
                       month: 'short',
                       day: 'numeric',
                       year: 'numeric',

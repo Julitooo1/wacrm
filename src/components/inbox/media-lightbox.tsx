@@ -26,6 +26,10 @@ import {
 import { useMediaBlobUrl } from "@/hooks/use-media-blob-url";
 import { downloadMediaMessage } from "@/lib/media/download";
 import { galleryIndexOf, type MediaGalleryItem } from "@/lib/media/gallery";
+import { useUiText } from "@/i18n/ui-text";
+import { useDateLocale } from "@/i18n/date-locale";
+
+
 
 /**
  * Full-size viewer for the images and videos in the open conversation
@@ -58,6 +62,8 @@ export function MediaLightbox({
   onActiveIdChange,
   contactLabel,
 }: MediaLightboxProps) {
+  const { dateLocale } = useDateLocale();
+  const uiText = useUiText();
   const t = useTranslations("Inbox.mediaViewer");
 
   const index = galleryIndexOf(items, activeId);
@@ -107,16 +113,16 @@ export function MediaLightbox({
     try {
       await downloadMediaMessage(item.message);
     } catch {
-      toast.error(t("downloadFailed"));
+      toast.error(uiText(t("downloadFailed")));
     } finally {
       setDownloading(false);
     }
-  }, [downloading, item, t]);
+  }, [downloading, item, t, uiText]);
 
   if (!item) return null;
 
   const authorLabel = item.fromCustomer ? contactLabel : t("you");
-  const timestamp = format(new Date(item.createdAt), "MMM d, yyyy HH:mm");
+  const timestamp = format(new Date(item.createdAt), "MMM d, yyyy HH:mm", { locale: dateLocale });
 
   return (
     <Dialog

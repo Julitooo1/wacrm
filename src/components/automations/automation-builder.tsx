@@ -72,6 +72,8 @@ import {
   type StepPath,
 } from "@/lib/automations/builder-tree"
 import { cn } from "@/lib/utils"
+import { useUiText } from "@/i18n/ui-text";
+
 
 // ------------------------------------------------------------
 // Types (builder-local — mirror the flattened rows we POST)
@@ -381,6 +383,7 @@ function ContactFieldSelect({
   onChange: (v: string) => void
   t: ReturnType<typeof useTranslations>
 }) {
+  const uiText = useUiText();
   const { customFields } = useResources()
   const customValue = value.startsWith("custom:") ? value : ""
   const knownCustom =
@@ -633,6 +636,7 @@ function SendTemplateFields({
 // ------------------------------------------------------------
 
 export function AutomationBuilder({ initial }: { initial: BuilderInitial }) {
+  const uiText = useUiText();
   const router = useRouter()
   const t = useTranslations("Automations.builder")
   const isEditing = !!initial.id
@@ -673,7 +677,7 @@ export function AutomationBuilder({ initial }: { initial: BuilderInitial }) {
     setSaving(true)
     try {
       const payload = {
-        name: state.name || "Untitled automation",
+        name: state.name || uiText("Untitled automation"),
         description: state.description || null,
         trigger_type: state.trigger_type,
         trigger_config: state.trigger_config,
@@ -701,15 +705,15 @@ export function AutomationBuilder({ initial }: { initial: BuilderInitial }) {
         const firstIssue: { path?: string; message?: string } | undefined =
           body?.issues?.[0]
         if (firstIssue?.message) {
-          toast.error(firstIssue.message, {
+          toast.error(uiText(firstIssue.message), {
             description: firstIssue.path ? `at ${firstIssue.path}` : undefined,
           })
         } else {
-          toast.error(body?.error ?? t("toasts.saveFailed"))
+          toast.error(uiText(body?.error ?? t("toasts.saveFailed")))
         }
         return
       }
-      toast.success(isEditing ? t("toasts.saved") : t("toasts.created"))
+      toast.success(uiText(isEditing ? t("toasts.saved") : t("toasts.created")))
       if (!isEditing && body?.automation?.id) {
         router.replace(`/automations/${body.automation.id}/edit`)
       }
@@ -803,6 +807,7 @@ function TriggerCard({
   onConfigChange: (c: Record<string, unknown>) => void
   t: ReturnType<typeof useTranslations>
 }) {
+  const uiText = useUiText();
   const [open, setOpen] = useState(false)
   return (
     // Card width: full on mobile, fixed 320px on sm+. The canvas wrapper
@@ -860,9 +865,7 @@ function TriggerCard({
             )}
             {type === "tag_added" && (
               <div>
-                <label className="mb-1 block text-xs font-medium text-muted-foreground">
-                  Tag
-                </label>
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">{uiText("Tag")}</label>
                 <TagSelect
                   value={(config.tag_id as string) ?? ""}
                   onChange={(v) => onConfigChange({ ...config, tag_id: v })}
@@ -876,7 +879,7 @@ function TriggerCard({
                   {t("schedule")}
                 </label>
                 <Input
-                  placeholder="Cron expression or HH:mm"
+                  placeholder={uiText("Cron expression or HH:mm")}
                   value={(config.schedule as string) ?? ""}
                   onChange={(e) =>
                     onConfigChange({ ...config, schedule: e.target.value })
@@ -904,6 +907,7 @@ function KeywordMatchConfig({
   onChange: (c: Record<string, unknown>) => void
   t: ReturnType<typeof useTranslations>
 }) {
+  const uiText = useUiText();
   const keywords = config?.keywords ?? []
   // Keep a local draft string so the comma and trailing space aren't
   // stripped on every keystroke (which made multi-word, comma-separated
@@ -1088,6 +1092,7 @@ function StepRenderer({
   scope: ParentScope
   basePath: StepPath
 } & Omit<StepListProps, "steps" | "basePath" | "scope">) {
+  const uiText = useUiText();
   const t = useTranslations("Automations.builder")
   const path = childPath(basePath, scope, index)
   const meta = STEP_META[step.step_type]
@@ -1133,7 +1138,7 @@ function StepRenderer({
             </div>
             <div className="min-w-0 flex-1">
               <div className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                {isCondition ? "Condition" : step.step_type === "wait" ? "Wait" : "Action"}
+                {isCondition ? uiText("Condition") : step.step_type === "wait" ? uiText("Wait") : uiText("Action")}
               </div>
               <div className="truncate text-sm font-medium text-foreground">{t(`steps.${meta.label}`)}</div>
               <div className="truncate text-[11px] text-muted-foreground">{previewFor(step)}</div>
@@ -1154,7 +1159,7 @@ function StepRenderer({
                     variant="ghost"
                     size="icon"
                     disabled={index === 0}
-                    aria-label="Move up"
+                    aria-label={uiText("Move up")}
                     onClick={() => props.moveStepAt(path, -1)}
                   >
                     <ArrowUp className="h-4 w-4" />
@@ -1163,7 +1168,7 @@ function StepRenderer({
                     variant="ghost"
                     size="icon"
                     disabled={index === total - 1}
-                    aria-label="Move down"
+                    aria-label={uiText("Move down")}
                     onClick={() => props.moveStepAt(path, 1)}
                   >
                     <ArrowDown className="h-4 w-4" />
@@ -1297,6 +1302,7 @@ function StepEditor({
   step: BuilderStep
   onChange: (s: BuilderStep) => void
 }) {
+  const uiText = useUiText();
   const t = useTranslations("Automations.builder")
   const cfg = step.step_config
   const set = (patch: Record<string, unknown>) =>
@@ -1473,7 +1479,7 @@ function StepEditor({
             />
           </FieldBlock>
           {(cfg.subject === "contact_field" || cfg.subject === "message_content") && (
-            <FieldBlock label="Value">
+            <FieldBlock label={uiText("Value")}>
               <Input
                 value={(cfg.value as string) ?? ""}
                 onChange={(e) => set({ value: e.target.value })}

@@ -53,6 +53,8 @@ import { useTranslations } from "next-intl";
 import { unlinkNodeReferences } from "@/lib/flows/edges";
 import type { FlowNodeRow, FlowRow } from "@/lib/flows/types";
 import { NODE_META, slugify, type BuilderNode, type NodeType } from "./shared";
+import { useUiText } from "@/i18n/ui-text";
+
 
 // ============================================================
 // State shape
@@ -237,6 +239,7 @@ export function FlowEditorProvider({
   initialNodes,
   children,
 }: ProviderProps) {
+  const uiText = useUiText();
   const router = useRouter();
   const t = useTranslations("Flows.editorState");
 
@@ -346,23 +349,23 @@ export function FlowEditorProvider({
       });
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
-        throw new Error(json.error ?? `Save failed: ${res.status}`);
+        throw new Error(json.error ?? uiText(`Save failed: ${res.status}`));
       }
       setDirty(false);
-      toast.success(t("saved"));
+      toast.success(uiText(t("saved")));
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Save failed";
-      toast.error(msg);
+      const msg = err instanceof Error ? err.message : uiText("Save failed");
+      toast.error(uiText(msg));
     } finally {
       setSaving(false);
     }
-  }, [initialFlow.id, state]);
+  }, [initialFlow.id, state, uiText]);
 
   // ---- Activate / Pause / Archive ----
   const setStatus = useCallback(
     async (next: BuilderState["status"]) => {
       if (next === "active" && !canActivate) {
-        toast.error(t("fixIssues"));
+        toast.error(uiText(t("fixIssues")));
         return;
       }
       setActivating(true);
@@ -380,43 +383,43 @@ export function FlowEditorProvider({
         });
         if (!res.ok) {
           const json = await res.json().catch(() => ({}));
-          throw new Error(json.error ?? `Status update failed: ${res.status}`);
+          throw new Error(json.error ?? uiText(`Status update failed: ${res.status}`));
         }
         setStateRaw((s) => ({ ...s, status: next }));
         toast.success(
-          next === "active"
+          uiText(next === "active"
             ? t("statusActivated")
             : next === "archived"
               ? t("statusArchived")
-              : t("statusDraft")
+              : t("statusDraft"))
         );
       } catch (err) {
-        const msg = err instanceof Error ? err.message : "Status update failed";
-        toast.error(msg);
+        const msg = err instanceof Error ? err.message : uiText("Status update failed");
+        toast.error(uiText(msg));
       } finally {
         setActivating(false);
       }
     },
-    [canActivate, save, initialFlow.id],
+    [canActivate, save, initialFlow.id, uiText],
   );
 
   // ---- Delete ----
   const deleteFlow = useCallback(async () => {
     const yes = window.confirm(
-      `Delete "${state.name}"? Any active runs end immediately. This can't be undone.`,
+      uiText(`Delete "${state.name}"? Any active runs end immediately. This can't be undone.`),
     );
     if (!yes) return;
     try {
       const res = await fetch(`/api/flows/${initialFlow.id}`, {
         method: "DELETE",
       });
-      if (!res.ok) throw new Error(`Delete failed: ${res.status}`);
+      if (!res.ok) throw new Error(uiText(`Delete failed: ${res.status}`));
       router.push("/flows");
     } catch (err) {
-      const msg = err instanceof Error ? err.message : "Delete failed";
-      toast.error(msg);
+      const msg = err instanceof Error ? err.message : uiText("Delete failed");
+      toast.error(uiText(msg));
     }
-  }, [initialFlow.id, router, state.name]);
+  }, [initialFlow.id, router, state.name, uiText]);
 
   // ---- Node mutations ----
   const updateNode = useCallback(

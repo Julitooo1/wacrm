@@ -13,6 +13,8 @@ import { Step4ScheduleSend } from '@/components/broadcasts/step4-schedule-send';
 import { useBroadcastSending } from '@/hooks/use-broadcast-sending';
 import { Check } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useUiText } from "@/i18n/ui-text";
+
 
 const steps = [
   { label: 'template', key: 'template' },
@@ -22,6 +24,7 @@ const steps = [
 ] as const;
 
 export default function NewBroadcastPage() {
+  const uiText = useUiText();
   const router = useRouter();
   const t = useTranslations('Broadcasts.new');
   const { accountId } = useAuth();
@@ -67,9 +70,9 @@ export default function NewBroadcastPage() {
     } catch (err) {
       // Previously swallowed with console.error — the wizard would
       // just no-op, leaving the user confused. Surface the reason.
-      const message = err instanceof Error ? err.message : 'Broadcast failed';
+      const message = err instanceof Error ? err.message : uiText("Broadcast failed");
       console.error('Broadcast failed:', err);
-      toast.error(message);
+      toast.error(uiText(message));
     }
   }
 
@@ -84,7 +87,7 @@ export default function NewBroadcastPage() {
    */
   async function handleSaveDraft() {
     if (!template || !name.trim()) {
-      toast.error(t('toastGiveName'));
+      toast.error(uiText(t('toastGiveName')));
       return;
     }
     const supabase = createClient();
@@ -93,11 +96,11 @@ export default function NewBroadcastPage() {
     } = await supabase.auth.getSession();
     const user = session?.user;
     if (!user) {
-      toast.error(t('toastNotSignedIn'));
+      toast.error(uiText(t('toastNotSignedIn')));
       return;
     }
     if (!accountId) {
-      toast.error(t('toastNotLinked'));
+      toast.error(uiText(t('toastNotLinked')));
       return;
     }
 
@@ -122,10 +125,10 @@ export default function NewBroadcastPage() {
     });
 
     if (error) {
-      toast.error(t('toastFailedDraft', { error: error.message }));
+      toast.error(uiText(t('toastFailedDraft', { error: error.message })));
       return;
     }
-    toast.success(t('toastDraftSaved'));
+    toast.success(uiText(t('toastDraftSaved')));
     router.push('/broadcasts');
   }
 

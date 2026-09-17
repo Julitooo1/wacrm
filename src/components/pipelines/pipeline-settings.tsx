@@ -36,6 +36,8 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
+import { useUiText } from "@/i18n/ui-text";
+
 
 const STAGE_COLORS = [
   "#3b82f6",
@@ -69,6 +71,7 @@ export function PipelineSettings({
   onStagesChanged,
   onCreateNewPipeline,
 }: PipelineSettingsProps) {
+  const uiText = useUiText();
   const t = useTranslations("Pipelines.settings");
   const supabase = createClient();
 
@@ -129,14 +132,14 @@ export function PipelineSettings({
     setSaving(false);
 
     if (renameRes.error || stagesRes.error) {
-      toast.error(t("toastFailedSave"));
+      toast.error(uiText(t("toastFailedSave")));
       return;
     }
 
     onOpenChange(false);
     onPipelinesChanged();
     onStagesChanged();
-    toast.success(t("toastSaved"));
+    toast.success(uiText(t("toastSaved")));
   }
 
   async function handleAddStage() {
@@ -153,7 +156,7 @@ export function PipelineSettings({
       .select()
       .single();
     if (error || !data) {
-      toast.error(t("toastFailedAddStage"));
+      toast.error(uiText(t("toastFailedAddStage")));
       return;
     }
     setLocalStages([...localStages, data as PipelineStage]);
@@ -168,7 +171,7 @@ export function PipelineSettings({
       .select("id", { count: "exact", head: true })
       .eq("stage_id", stageId);
     if (count && count > 0) {
-      toast.error(t("toastMoveOrDeleteDeals"));
+      toast.error(uiText(t("toastMoveOrDeleteDeals")));
       return;
     }
     const { error } = await supabase
@@ -176,7 +179,7 @@ export function PipelineSettings({
       .delete()
       .eq("id", stageId);
     if (error) {
-      toast.error(t("toastFailedDeleteStage"));
+      toast.error(uiText(t("toastFailedDeleteStage")));
       return;
     }
     setLocalStages(localStages.filter((s) => s.id !== stageId));
@@ -191,12 +194,12 @@ export function PipelineSettings({
       .eq("id", pipeline.id);
     setDeleting(false);
     if (error) {
-      toast.error(t("toastFailedDeletePipeline"));
+      toast.error(uiText(t("toastFailedDeletePipeline")));
       return;
     }
     onOpenChange(false);
     onPipelinesChanged();
-    toast.success(t("toastDeleted"));
+    toast.success(uiText(t("toastDeleted")));
   }
 
   return (
@@ -298,7 +301,7 @@ export function PipelineSettings({
                             ? "var(--foreground)"
                             : "transparent",
                       }}
-                      aria-label={`Pick color ${color}`}
+                      aria-label={uiText(`Pick color ${color}`)}
                     />
                   ))}
                 </div>

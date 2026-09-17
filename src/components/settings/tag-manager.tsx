@@ -25,6 +25,8 @@ import {
 import { cn } from '@/lib/utils';
 import { useTranslations } from 'next-intl';
 import type { Tag } from '@/types';
+import { useUiText } from "@/i18n/ui-text";
+
 
 const PRESET_COLORS = [
   { name: 'red', value: '#ef4444' },
@@ -43,6 +45,7 @@ const PRESET_COLORS = [
  * dialog since it detaches the tag from every contact.
  */
 export function TagManager() {
+  const uiText = useUiText();
   const t = useTranslations('Settings.tagsAndFields');
   const supabase = createClient();
   const { user, accountId, loading: authLoading } = useAuth();
@@ -79,7 +82,7 @@ export function TagManager() {
       setTags(data || []);
     } catch (err) {
       console.error('Failed to fetch tags:', err);
-      toast.error(t('failedToLoadTags'));
+      toast.error(uiText(t('failedToLoadTags')));
     } finally {
       setLoading(false);
     }
@@ -87,14 +90,14 @@ export function TagManager() {
 
   async function handleCreate() {
     if (!newTagName.trim()) {
-      toast.error(t('nameRequired'));
+      toast.error(uiText(t('nameRequired')));
       return;
     }
 
     try {
       setSaving(true);
       if (!user || !accountId) {
-        toast.error(t('notAuthenticated'));
+        toast.error(uiText(t('notAuthenticated')));
         return;
       }
 
@@ -109,13 +112,13 @@ export function TagManager() {
 
       if (error) throw error;
 
-      toast.success(t('tagCreated'));
+      toast.success(uiText(t('tagCreated')));
       setNewTagName('');
       setSelectedColor(PRESET_COLORS[3].value);
       await fetchTags(user.id);
     } catch (err) {
       console.error('Create error:', err);
-      toast.error(t('failedToCreateTag'));
+      toast.error(uiText(t('failedToCreateTag')));
     } finally {
       setSaving(false);
     }
@@ -138,13 +141,13 @@ export function TagManager() {
 
       if (error) throw error;
 
-      toast.success(t('tagDeleted'));
+      toast.success(uiText(t('tagDeleted')));
       setTags((prev) => prev.filter((t) => t.id !== tagToDelete.id));
       setDeleteDialogOpen(false);
       setTagToDelete(null);
     } catch (err) {
       console.error('Delete error:', err);
-      toast.error(t('failedToDeleteTag'));
+      toast.error(uiText(t('failedToDeleteTag')));
     } finally {
       setDeleting(false);
     }

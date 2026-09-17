@@ -8,10 +8,13 @@ import { AiUsageCard } from '@/components/agents/ai-usage';
 import { AiConfig } from '@/components/settings/ai-config';
 import { useAuth } from '@/hooks/use-auth';
 import { canEditSettings } from '@/lib/auth/roles';
+import { useUiText } from "@/i18n/ui-text";
+
 
 type Tab = 'playground' | 'setup' | 'usage';
 
 export default function AgentsPage() {
+  const uiText = useUiText();
   const { accountRole } = useAuth();
   const canViewUsage = accountRole ? canEditSettings(accountRole) : false;
   const [tab, setTab] = useState<Tab>('playground');
@@ -40,14 +43,9 @@ export default function AgentsPage() {
     <div>
       <div className="flex items-center gap-2">
         <Bot className="h-6 w-6 text-primary" />
-        <h1 className="text-2xl font-bold tracking-tight text-foreground">
-          AI Agents
-        </h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">{uiText("AI Agents")}</h1>
       </div>
-      <p className="mt-1 text-sm text-muted-foreground">
-        Your bring-your-own-key AI agent — set it up, then test it in the
-        playground before it replies to customers in the inbox.
-      </p>
+      <p className="mt-1 text-sm text-muted-foreground">{uiText("Your bring-your-own-key AI agent — set it up, then test it in the playground before it replies to customers in the inbox.")}</p>
 
       {decided && (
         <Tabs
@@ -57,15 +55,12 @@ export default function AgentsPage() {
         >
           <TabsList>
             <TabsTrigger value="playground">
-              <Sparkles className="mr-1.5 h-4 w-4" /> Playground
-            </TabsTrigger>
+              <Sparkles className="mr-1.5 h-4 w-4" />{" " + uiText("Playground") + ""}</TabsTrigger>
             <TabsTrigger value="setup">
-              <Settings2 className="mr-1.5 h-4 w-4" /> Setup
-            </TabsTrigger>
+              <Settings2 className="mr-1.5 h-4 w-4" />{" " + uiText("Setup") + ""}</TabsTrigger>
             {canViewUsage && (
               <TabsTrigger value="usage">
-                <BarChart3 className="mr-1.5 h-4 w-4" /> Usage
-              </TabsTrigger>
+                <BarChart3 className="mr-1.5 h-4 w-4" />{" " + uiText("Usage") + ""}</TabsTrigger>
             )}
           </TabsList>
 

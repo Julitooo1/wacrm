@@ -42,6 +42,8 @@ import {
 } from '@/lib/api-keys/scopes';
 import { useTranslations } from 'next-intl';
 import { SettingsPanelHead } from './settings-panel-head';
+import { useUiText } from "@/i18n/ui-text";
+
 
 interface ApiKey {
   id: string;
@@ -70,6 +72,7 @@ function keyStatus(k: ApiKey): 'active' | 'revoked' | 'expired' {
 }
 
 export function ApiKeysSettings() {
+  const uiText = useUiText();
   const { canEditSettings } = useAuth();
   const t = useTranslations('Settings.apiKeys');
 
@@ -83,18 +86,18 @@ export function ApiKeysSettings() {
       const res = await fetch('/api/account/api-keys', { cache: 'no-store' });
       if (!res.ok) {
         const payload = await res.json().catch(() => ({}));
-        toast.error(payload.error || t('loadFailed'));
+        toast.error(uiText(payload.error || t('loadFailed')));
         return;
       }
       const data = (await res.json()) as { keys: ApiKey[] };
       setKeys(data.keys);
     } catch (err) {
       console.error('[ApiKeysSettings] load error:', err);
-      toast.error(t('networkError'));
+      toast.error(uiText(t('networkError')));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [uiText]);
 
   useEffect(() => {
     void load();
@@ -108,10 +111,10 @@ export function ApiKeysSettings() {
       });
       if (!res.ok) {
         const payload = await res.json().catch(() => ({}));
-        toast.error(payload.error || t('revokeFailed'));
+        toast.error(uiText(payload.error || t('revokeFailed')));
         return;
       }
-      toast.success(t('revokeSuccess', { name: key.name }));
+      toast.success(uiText(t('revokeSuccess', { name: key.name })));
       // Reflect the revoke locally without a refetch.
       setKeys((prev) =>
         prev.map((k) =>
@@ -120,7 +123,7 @@ export function ApiKeysSettings() {
       );
     } catch (err) {
       console.error('[ApiKeysSettings] revoke error:', err);
-      toast.error(t('networkError'));
+      toast.error(uiText(t('networkError')));
     } finally {
       setRevoking(null);
     }
@@ -289,6 +292,7 @@ function CreateKeyDialog({
   onOpenChange: (open: boolean) => void;
   onCreated: () => void;
 }) {
+  const uiText = useUiText();
   const t = useTranslations('Settings.apiKeys');
   const [name, setName] = useState('');
   const [scopes, setScopes] = useState<ApiScope[]>([]);
@@ -312,7 +316,7 @@ function CreateKeyDialog({
   async function handleCreate() {
     const trimmed = name.trim();
     if (!trimmed) {
-      toast.error(t('nameRequired'));
+      toast.error(uiText(t('nameRequired')));
       return;
     }
     setSubmitting(true);
@@ -324,14 +328,14 @@ function CreateKeyDialog({
       });
       const payload = await res.json().catch(() => ({}));
       if (!res.ok) {
-        toast.error(payload.error || t('createError'));
+        toast.error(uiText(payload.error || t('createError')));
         return;
       }
       setCreatedKey(payload.plaintext as string);
       onCreated();
     } catch (err) {
       console.error('[CreateKeyDialog] create error:', err);
-      toast.error(t('networkError'));
+      toast.error(uiText(t('networkError')));
     } finally {
       setSubmitting(false);
     }
@@ -341,9 +345,9 @@ function CreateKeyDialog({
     if (!createdKey) return;
     try {
       await navigator.clipboard.writeText(createdKey);
-      toast.success(t('copySuccess'));
+      toast.success(uiText(t('copySuccess')));
     } catch {
-      toast.error(t('copyFailed'));
+      toast.error(uiText(t('copyFailed')));
     }
   }
 

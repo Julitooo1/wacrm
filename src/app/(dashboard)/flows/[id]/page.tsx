@@ -9,6 +9,8 @@ import { useTranslations } from "next-intl";
 
 import { FlowEditorShell } from "@/components/flows/flow-editor-shell";
 import type { FlowRow, FlowNodeRow } from "@/lib/flows/types";
+import { useUiText } from "@/i18n/ui-text";
+
 
 /**
  * Flow editor shell.
@@ -23,6 +25,7 @@ import type { FlowRow, FlowNodeRow } from "@/lib/flows/types";
  * "Flow not found" state below.
  */
 export default function FlowEditorPage() {
+  const uiText = useUiText();
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const t = useTranslations("Flows.edit");
@@ -42,7 +45,7 @@ export default function FlowEditorPage() {
           if (!cancelled) setNotFound(true);
           return;
         }
-        if (!res.ok) throw new Error(`Failed: ${res.status}`);
+        if (!res.ok) throw new Error(uiText(`Failed: ${res.status}`));
         const json = (await res.json()) as {
           flow: FlowRow;
           nodes: FlowNodeRow[];
@@ -54,7 +57,7 @@ export default function FlowEditorPage() {
       } catch (err) {
         if (!cancelled) {
           console.error(err);
-          toast.error(t("loadError"));
+          toast.error(uiText(t("loadError")));
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -63,7 +66,7 @@ export default function FlowEditorPage() {
     return () => {
       cancelled = true;
     };
-  }, [params.id]);
+  }, [params.id, uiText]);
 
   if (loading) {
     return (

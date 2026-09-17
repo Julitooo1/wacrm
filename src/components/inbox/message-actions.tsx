@@ -11,6 +11,8 @@ import {
 } from "@/components/ui/popover";
 import type { Message } from "@/types";
 import { useTranslations } from "next-intl";
+import { useUiText } from "@/i18n/ui-text";
+
 
 // WhatsApp's own quick-reaction bar starts with these six. Picking the same
 // set keeps the affordance familiar without pulling in a 300KB emoji library.
@@ -34,6 +36,7 @@ export function MessageActions({
   onReact,
   children,
 }: MessageActionsProps) {
+  const uiText = useUiText();
   const t = useTranslations("Inbox.actions");
 
   // Touch devices have no hover. Long-press fires `contextmenu`; we capture
@@ -53,14 +56,14 @@ export function MessageActions({
   const handleCopy = async () => {
     const text = message.content_text ?? "";
     if (!text) {
-      toast.error(t("nothingToCopy"));
+      toast.error(uiText(t("nothingToCopy")));
       return;
     }
     try {
       await navigator.clipboard.writeText(text);
-      toast.success(t("copied"));
+      toast.success(uiText(t("copied")));
     } catch {
-      toast.error(t("copyFailed"));
+      toast.error(uiText(t("copyFailed")));
     }
     setTouchOpen(false);
   };

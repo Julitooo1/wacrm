@@ -16,6 +16,10 @@ import {
 } from '@/components/ui/dialog';
 import { ArrowLeft, Send, Loader2, Users, Save } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useUiText } from "@/i18n/ui-text";
+import { useDateLocale } from "@/i18n/date-locale";
+
+
 
 interface AudienceConfig {
   type: string;
@@ -46,6 +50,8 @@ export function Step4ScheduleSend({
   isProcessing,
   progress,
 }: Step4Props) {
+  const { localeTag } = useDateLocale();
+  const uiText = useUiText();
   const t = useTranslations('Broadcasts.wizard');
   const [showConfirm, setShowConfirm] = useState(false);
   const [estimatedReach, setEstimatedReach] = useState<number>(0);
@@ -125,20 +131,20 @@ export function Step4ScheduleSend({
             <p className="text-foreground">{audienceLabel}</p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">Estimated Reach</p>
+            <p className="text-xs text-muted-foreground">{uiText("Estimated Reach")}</p>
             <div className="flex items-center gap-1.5">
               {loadingReach ? (
                 <Loader2 className="h-3 w-3 animate-spin text-primary" />
               ) : (
                 <>
                   <Users className="h-3.5 w-3.5 text-primary" />
-                  <p className="font-medium text-foreground">{estimatedReach.toLocaleString()}</p>
+                  <p className="font-medium text-foreground">{estimatedReach.toLocaleString(localeTag)}</p>
                 </>
               )}
             </div>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground">Language</p>
+            <p className="text-xs text-muted-foreground">{uiText("Language")}</p>
             <p className="text-foreground">{template.language ?? 'en_US'}</p>
           </div>
         </div>
@@ -201,14 +207,10 @@ export function Step4ScheduleSend({
           </DialogTrigger>
           <DialogContent className="border-border bg-popover sm:max-w-md">
             <DialogHeader>
-              <DialogTitle className="text-popover-foreground">Confirm Broadcast</DialogTitle>
-              <DialogDescription className="text-muted-foreground">
-                You are about to send this broadcast to{' '}
-                <span className="font-medium text-popover-foreground">{estimatedReach.toLocaleString()}</span>{' '}
-                contacts using the{' '}
-                <span className="font-medium text-popover-foreground">{template.name}</span> template.
-                This action cannot be undone.
-              </DialogDescription>
+              <DialogTitle className="text-popover-foreground">{uiText("Confirm Broadcast")}</DialogTitle>
+              <DialogDescription className="text-muted-foreground">{uiText("You are about to send this broadcast to")}{' '}
+                <span className="font-medium text-popover-foreground">{estimatedReach.toLocaleString(localeTag)}</span>{' '}{uiText("contacts using the")}{' '}
+                <span className="font-medium text-popover-foreground">{template.name}</span>{" " + uiText("template. This action cannot be undone.") + ""}</DialogDescription>
             </DialogHeader>
             <DialogFooter>
               <Button

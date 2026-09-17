@@ -10,6 +10,8 @@ import {
   SETTINGS_SECTIONS,
   type SettingsSection,
 } from './settings-sections';
+import { useUiText } from "@/i18n/ui-text";
+
 
 // Width at/above which the rail is a vertical column (already in view, so
 // no auto-scroll needed). Mirrors the Tailwind `lg:` breakpoint that
@@ -31,6 +33,7 @@ export function SettingsRail({
   onSelect: (section: SettingsSection) => void;
   hints?: Partial<Record<SettingsSection, ReactNode>>;
 }) {
+  const uiText = useUiText();
   const t = useTranslations('Settings');
   const activeRef = useRef<HTMLButtonElement>(null);
 
@@ -48,7 +51,7 @@ export function SettingsRail({
 
   return (
     <nav
-      aria-label="Settings sections"
+      aria-label={uiText("Settings sections")}
       className={cn(
         'flex gap-1 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden',
         'border-b border-border',

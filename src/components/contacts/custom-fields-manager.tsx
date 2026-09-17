@@ -16,6 +16,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useUiText } from "@/i18n/ui-text";
+
 
 interface CustomFieldsManagerProps {
   open: boolean;
@@ -55,6 +57,7 @@ export function CustomFieldsManager({
  * `custom_fields` RLS also rejects non-admin writes as defense in depth.
  */
 export function CustomFieldsPanel() {
+  const uiText = useUiText();
   const t = useTranslations('Contacts.customFields');
   const supabase = createClient();
   const { user, accountId } = useAuth();
@@ -98,11 +101,11 @@ export function CustomFieldsPanel() {
     const name = newName.trim();
     if (!name) return;
     if (!accountId || !user) {
-      toast.error(t('toastNoAccount'));
+      toast.error(uiText(t('toastNoAccount')));
       return;
     }
     if (isDuplicate(name)) {
-      toast.error(t('toastDuplicate', { name }));
+      toast.error(uiText(t('toastDuplicate', { name })));
       return;
     }
 
@@ -116,10 +119,10 @@ export function CustomFieldsPanel() {
     setCreating(false);
 
     if (error) {
-      toast.error(t('toastCreateFailed'));
+      toast.error(uiText(t('toastCreateFailed')));
       return;
     }
-    toast.success(t('toastCreated', { name }));
+    toast.success(uiText(t('toastCreated', { name })));
     setNewName('');
     await fetchFields();
   }
@@ -133,7 +136,7 @@ export function CustomFieldsPanel() {
     const name = nextName.trim();
     if (!name || name === field.field_name) return true;
     if (isDuplicate(name, field.id)) {
-      toast.error(t('toastDuplicate', { name }));
+      toast.error(uiText(t('toastDuplicate', { name })));
       return false;
     }
     setBusyId(field.id);
@@ -143,7 +146,7 @@ export function CustomFieldsPanel() {
       .eq('id', field.id);
     setBusyId(null);
     if (error) {
-      toast.error(t('toastRenameFailed'));
+      toast.error(uiText(t('toastRenameFailed')));
       return false;
     }
     await fetchFields();
@@ -165,10 +168,10 @@ export function CustomFieldsPanel() {
       .eq('id', field.id);
     setBusyId(null);
     if (error) {
-      toast.error(t('toastDeleteFailed'));
+      toast.error(uiText(t('toastDeleteFailed')));
       return;
     }
-    toast.success(t('toastDeleted', { name: field.field_name }));
+    toast.success(uiText(t('toastDeleted', { name: field.field_name })));
     await fetchFields();
   }
 

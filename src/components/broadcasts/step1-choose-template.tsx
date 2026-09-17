@@ -6,6 +6,8 @@ import { MessageTemplate } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Loader2, FileText, ArrowRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useUiText } from "@/i18n/ui-text";
+
 
 const categoryColors: Record<string, string> = {
   Marketing: 'bg-purple-500/10 text-purple-400 border-purple-500/20',
@@ -21,6 +23,7 @@ interface Step1Props {
 }
 
 export function Step1ChooseTemplate({ selectedTemplate, onSelect, onNext, onBack }: Step1Props) {
+  const uiText = useUiText();
   const t = useTranslations('Broadcasts.wizard');
   const [templates, setTemplates] = useState<MessageTemplate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -103,7 +106,7 @@ export function Step1ChooseTemplate({ selectedTemplate, onSelect, onNext, onBack
                   <span
                     className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-medium ${catColor}`}
                   >
-                    {template.category}
+                    {uiText(template.category)}
                   </span>
                 </div>
                 <p className="line-clamp-3 text-xs text-muted-foreground">{template.body_text}</p>

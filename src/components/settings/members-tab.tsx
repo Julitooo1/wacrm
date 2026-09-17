@@ -75,6 +75,8 @@ import {
 import { InviteMemberDialog } from './invite-member-dialog';
 import { SettingsPanelHead } from './settings-panel-head';
 import { ROLE_META } from './role-meta';
+import { useUiText } from "@/i18n/ui-text";
+
 
 interface Member {
   user_id: string;
@@ -125,6 +127,7 @@ function fmtExpiresIn(iso: string, t: (key: string, values?: Record<string, stri
 }
 
 export function MembersTab() {
+  const uiText = useUiText();
   const t = useTranslations('Settings.members');
   const tRoles = useTranslations('Settings.roles');
   const { user, canManageMembers } = useAuth();
@@ -151,7 +154,7 @@ export function MembersTab() {
 
       if (!mres.ok) {
         const payload = await mres.json().catch(() => ({}));
-        toast.error(payload.error || 'Failed to load members');
+        toast.error(uiText(payload.error || uiText("Failed to load members")));
         return;
       }
       const mdata = (await mres.json()) as { members: Member[] };
@@ -160,7 +163,7 @@ export function MembersTab() {
       if (ires) {
         if (!ires.ok) {
           const payload = await ires.json().catch(() => ({}));
-          toast.error(payload.error || 'Failed to load invitations');
+          toast.error(uiText(payload.error || uiText("Failed to load invitations")));
           return;
         }
         const idata = (await ires.json()) as { invitations: Invitation[] };
@@ -170,11 +173,11 @@ export function MembersTab() {
       }
     } catch (err) {
       console.error('[MembersTab] load error:', err);
-      toast.error('Could not reach the server');
+      toast.error(uiText("Could not reach the server"));
     } finally {
       setLoading(false);
     }
-  }, [canManageMembers]);
+  }, [canManageMembers, uiText]);
 
   useEffect(() => {
     void loadEverything();
@@ -210,10 +213,10 @@ export function MembersTab() {
           ),
         );
         const payload = await res.json().catch(() => ({}));
-        toast.error(payload.error || 'Failed to update role');
+        toast.error(uiText(payload.error || uiText("Failed to update role")));
         return;
       }
-      toast.success(t('updatedToast', { name: member.full_name || t('unnamed'), role: tRoles(nextRole) }));
+      toast.success(uiText(t('updatedToast', { name: member.full_name || t('unnamed'), role: tRoles(nextRole) })));
     } catch (err) {
       // Same revert on network failure.
       setMembers((prev) =>
@@ -222,7 +225,7 @@ export function MembersTab() {
         ),
       );
       console.error('[MembersTab] role change error:', err);
-      toast.error('Could not reach the server');
+      toast.error(uiText("Could not reach the server"));
     } finally {
       setPendingMemberAction(null);
     }
@@ -238,17 +241,17 @@ export function MembersTab() {
       );
       if (!res.ok) {
         const payload = await res.json().catch(() => ({}));
-        toast.error(payload.error || 'Failed to remove member');
+        toast.error(uiText(payload.error || uiText("Failed to remove member")));
         return;
       }
-      toast.success(t('removedToast', { name: removingMember.full_name || t('unnamed') }));
+      toast.success(uiText(t('removedToast', { name: removingMember.full_name || t('unnamed') })));
       setMembers((prev) =>
         prev.filter((m) => m.user_id !== removingMember.user_id),
       );
       setRemovingMember(null);
     } catch (err) {
       console.error('[MembersTab] remove error:', err);
-      toast.error('Could not reach the server');
+      toast.error(uiText("Could not reach the server"));
     } finally {
       setPendingMemberAction(null);
     }
@@ -261,14 +264,14 @@ export function MembersTab() {
       });
       if (!res.ok) {
         const payload = await res.json().catch(() => ({}));
-        toast.error(payload.error || 'Failed to revoke invitation');
+        toast.error(uiText(payload.error || uiText("Failed to revoke invitation")));
         return;
       }
-      toast.success(t('revokedToast'));
+      toast.success(uiText(t('revokedToast')));
       setInvitations((prev) => prev.filter((i) => i.id !== invite.id));
     } catch (err) {
       console.error('[MembersTab] revoke error:', err);
-      toast.error('Could not reach the server');
+      toast.error(uiText("Could not reach the server"));
     }
   }
 

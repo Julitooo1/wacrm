@@ -41,6 +41,10 @@ import {
   getRecipientStatus,
 } from '@/lib/broadcast-status';
 import { useTranslations } from 'next-intl';
+import { useUiText } from "@/i18n/ui-text";
+import { useDateLocale } from "@/i18n/date-locale";
+
+
 
 interface StatCardProps {
   label: string;
@@ -51,6 +55,7 @@ interface StatCardProps {
 }
 
 function StatCard({ label, value, total, icon, color }: StatCardProps) {
+  const { localeTag } = useDateLocale();
   const pct = total > 0 ? Math.round((value / total) * 100) : 0;
   return (
     <div className="rounded-xl border border-border bg-card p-4">
@@ -60,7 +65,7 @@ function StatCard({ label, value, total, icon, color }: StatCardProps) {
         </div>
         <span className="text-xs text-muted-foreground">{pct}%</span>
       </div>
-      <p className="mt-3 text-2xl font-bold text-foreground">{value.toLocaleString()}</p>
+      <p className="mt-3 text-2xl font-bold text-foreground">{value.toLocaleString(localeTag)}</p>
       <p className="text-xs text-muted-foreground">{label}</p>
     </div>
   );
@@ -78,10 +83,12 @@ interface FunnelStep {
  * always render a full bar at the top and proportional tails.
  */
 function FunnelChart({ steps }: { steps: FunnelStep[] }) {
+  const { localeTag } = useDateLocale();
+  const uiText = useUiText();
   const max = Math.max(...steps.map((s) => s.value), 1);
   return (
     <div className="rounded-xl border border-border bg-card p-4">
-      <h3 className="mb-4 text-sm font-medium text-foreground">Funnel</h3>
+      <h3 className="mb-4 text-sm font-medium text-foreground">{uiText("Funnel")}</h3>
       <div className="space-y-2">
         {steps.map((step) => {
           const pctOfMax = Math.max(5, Math.round((step.value / max) * 100));
@@ -100,7 +107,7 @@ function FunnelChart({ steps }: { steps: FunnelStep[] }) {
                   style={{ width: `${pctOfMax}%` }}
                 />
                 <span className="absolute inset-0 flex items-center px-3 text-xs font-medium text-foreground">
-                  {step.value.toLocaleString()}
+                  {step.value.toLocaleString(localeTag)}
                   <span className="ml-2 text-muted-foreground/80">
                     ({pctOfSent}%)
                   </span>
@@ -145,6 +152,8 @@ function downloadBlob(filename: string, content: string) {
 }
 
 export default function BroadcastDetailPage() {
+  const { localeTag } = useDateLocale();
+  const uiText = useUiText();
   const params = useParams();
   const router = useRouter();
   const t = useTranslations('Broadcasts.detail');
@@ -249,29 +258,29 @@ export default function BroadcastDetailPage() {
 
       if (!res.ok) {
         toast.error(
-          t('toastResumeFailed', {
+          uiText(t('toastResumeFailed', {
             error: payload?.error || `HTTP ${res.status}`,
-          }),
+          })),
         );
         return;
       }
 
       toast.success(
-        payload.remaining > 0
+        uiText(payload.remaining > 0
           ? t('toastResumeStartedCapped', {
               count: payload.resuming,
               remaining: payload.remaining,
             })
-          : t('toastResumeStarted', { count: payload.resuming }),
+          : t('toastResumeStarted', { count: payload.resuming })),
       );
       // Delivery runs server-side after the 202, so the counts here are
       // a snapshot — reload to pick up the first of it.
       await fetchData();
     } catch (err) {
       toast.error(
-        t('toastResumeFailed', {
-          error: err instanceof Error ? err.message : 'Unknown error',
-        }),
+        uiText(t('toastResumeFailed', {
+          error: err instanceof Error ? err.message : uiText("Unknown error"),
+        })),
       );
     } finally {
       setResumingScope(null);
@@ -291,10 +300,10 @@ export default function BroadcastDetailPage() {
       .eq('id', broadcastId);
     setDeleting(false);
     if (delErr) {
-      toast.error(t('toastFailedDelete', { error: delErr.message }));
+      toast.error(uiText(t('toastFailedDelete', { error: delErr.message })));
       return;
     }
-    toast.success(t('toastDeleted'));
+    toast.success(uiText(t('toastDeleted')));
     router.push('/broadcasts');
   }
 
@@ -359,7 +368,7 @@ export default function BroadcastDetailPage() {
               <span>{t('template', { name: broadcast.template_name })}</span>
               <span>-</span>
               <span>
-                {t('createdAt', { date: new Date(broadcast.created_at).toLocaleDateString() })}
+                {t('createdAt', { date: new Date(broadcast.created_at).toLocaleDateString(localeTag) })}
               </span>
             </div>
           </div>
@@ -597,7 +606,7 @@ export default function BroadcastDetailPage() {
                   return (
                     <TableRow key={recipient.id} className="border-border">
                       <TableCell className="font-medium text-foreground">
-                        {recipient.contact?.name ?? 'Unknown'}
+                        {recipient.contact?.name ?? uiText("Unknown")}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {recipient.contact?.phone ?? '-'}
@@ -611,17 +620,17 @@ export default function BroadcastDetailPage() {
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {recipient.sent_at
-                          ? new Date(recipient.sent_at).toLocaleString()
+                          ? new Date(recipient.sent_at).toLocaleString(localeTag)
                           : '-'}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {recipient.delivered_at
-                          ? new Date(recipient.delivered_at).toLocaleString()
+                          ? new Date(recipient.delivered_at).toLocaleString(localeTag)
                           : '-'}
                       </TableCell>
                       <TableCell className="text-muted-foreground">
                         {recipient.read_at
-                          ? new Date(recipient.read_at).toLocaleString()
+                          ? new Date(recipient.read_at).toLocaleString(localeTag)
                           : '-'}
                       </TableCell>
                       <TableCell className="max-w-xs truncate text-xs text-red-400">

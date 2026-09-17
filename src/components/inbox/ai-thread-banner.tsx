@@ -6,6 +6,8 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { useTranslations } from "next-intl";
 import { useAuth } from "@/hooks/use-auth";
+import { useUiText } from "@/i18n/ui-text";
+
 
 // ------------------------------------------------------------
 // Account AI status is the same for every conversation, so cache it per
@@ -78,6 +80,7 @@ export function AiThreadBanner({
   currentUserId,
   onChange,
 }: AiThreadBannerProps) {
+  const uiText = useUiText();
   const t = useTranslations("Inbox.aiBanner");
   const { accountId } = useAuth();
   const [autoReplyOn, setAutoReplyOn] = useState<boolean | null>(null);
@@ -109,7 +112,7 @@ export function AiThreadBanner({
         });
         if (!res.ok) {
           const j = await res.json().catch(() => ({}));
-          toast.error(j?.error ?? t("updateError"));
+          toast.error(uiText(j?.error ?? t("updateError")));
           return;
         }
         setPaused(paused);
@@ -124,14 +127,14 @@ export function AiThreadBanner({
               : {}
             : { assigned_agent_id: null }),
         });
-        toast.success(paused ? t("tookOver") : t("resumed"));
+        toast.success(uiText(paused ? t("tookOver") : t("resumed")));
       } catch {
-        toast.error(t("networkError"));
+        toast.error(uiText(t("networkError")));
       } finally {
         setBusy(false);
       }
     },
-    [conversationId, currentUserId, onChange, t],
+    [conversationId, currentUserId, onChange, t, uiText],
   );
 
   // Account has no auto-reply → nothing to show. (Still loading → nothing.)

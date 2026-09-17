@@ -112,8 +112,11 @@ interface SidebarProps {
 }
 
 import { useTranslations } from "next-intl";
+import { useUiText } from "@/i18n/ui-text";
+
 
 export function Sidebar({ open = false, onClose }: SidebarProps) {
+  const uiText = useUiText();
   const t = useTranslations("Sidebar");
   const pathname = usePathname();
   const { profile, profileLoading, account, accountRole, signOut } = useAuth();
@@ -182,7 +185,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
           // Desktop: static, always visible — reset all the mobile framing.
           "lg:static lg:z-0 lg:w-60 lg:translate-x-0 lg:transition-none",
         )}
-        aria-label="Primary"
+        aria-label={uiText("Primary")}
       >
         {/* Logo row. On mobile we put a close button here; on desktop the
             close button is hidden since the sidebar is always-visible. */}
@@ -192,7 +195,7 @@ export function Sidebar({ open = false, onClose }: SidebarProps) {
               <MessageSquare className="h-4 w-4" />
             </div>
             <span className="text-sm font-semibold text-foreground">
-              {t("title")}
+              INSITELVIA
             </span>
           </Link>
           <button

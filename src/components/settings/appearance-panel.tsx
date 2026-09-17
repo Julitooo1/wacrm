@@ -7,6 +7,8 @@ import { MODES, THEMES, type Mode, type ThemeId } from "@/lib/themes";
 import { cn } from "@/lib/utils";
 import { useTranslations } from "next-intl";
 import { SettingsPanelHead } from "./settings-panel-head";
+import { useUiText } from "@/i18n/ui-text";
+
 
 /**
  * Appearance panel — light/dark mode + accent-color picker.
@@ -21,6 +23,7 @@ import { SettingsPanelHead } from "./settings-panel-head";
  * loads.
  */
 export function AppearancePanel() {
+  const uiText = useUiText();
   const { theme, setTheme, mode, setMode } = useTheme();
   const t = useTranslations("Settings.appearance");
 
@@ -39,7 +42,7 @@ export function AppearancePanel() {
 
         <div
           role="radiogroup"
-          aria-label="Color mode"
+          aria-label={uiText("Color mode")}
           className="grid max-w-md grid-cols-2 gap-3"
         >
           {MODES.map((m) => (
@@ -86,6 +89,7 @@ function ModeCard({
   isActive: boolean;
   onPick: () => void;
 }) {
+  const uiText = useUiText();
   const t = useTranslations("Settings.appearance");
   const isLight = mode === "light";
   const Icon = isLight ? Sun : Moon;
@@ -110,7 +114,7 @@ function ModeCard({
         <Icon className="h-4 w-4" />
       </span>
       <span className="flex-1 text-sm font-semibold capitalize text-foreground">
-        {mode}
+        {uiText(mode)}
       </span>
       {isActive && (
         <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-[11px] font-medium text-primary">
@@ -137,6 +141,7 @@ function ThemeCard({
   isActive: boolean;
   onPick: () => void;
 }) {
+  const uiText = useUiText();
   const t = useTranslations("Settings.appearance");
   return (
     <button
@@ -168,9 +173,9 @@ function ThemeCard({
         )}
       </div>
       <div>
-        <div className="text-sm font-semibold text-foreground">{name}</div>
+        <div className="text-sm font-semibold text-foreground">{uiText(name)}</div>
         <div className="mt-1 text-xs leading-relaxed text-muted-foreground">
-          {tagline}
+          {uiText(tagline)}
         </div>
       </div>
       <div
@@ -182,7 +187,7 @@ function ThemeCard({
         <span className="w-3 bg-muted" />
         <span className="w-3 bg-card" />
       </div>
-      <span className="sr-only">Theme id: {id}</span>
+      <span className="sr-only">{"" + uiText("Theme id:") + " "}{id}</span>
     </button>
   );
 }

@@ -14,6 +14,8 @@ import {
 } from '@/components/ui/select';
 import { ArrowLeft, ArrowRight, Eye, ImageIcon, Loader2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useUiText } from "@/i18n/ui-text";
+
 
 type VariableType = 'static' | 'field' | 'custom_field';
 
@@ -76,6 +78,7 @@ export function Step3Personalize({
   onNext,
   onBack,
 }: Step3Props) {
+  const uiText = useUiText();
   const t = useTranslations('Broadcasts.wizard');
   const [customFields, setCustomFields] = useState<CustomField[]>([]);
   const [loadingFields, setLoadingFields] = useState(true);
@@ -156,7 +159,7 @@ export function Step3Personalize({
   const headerMediaError = useMemo<'missing' | 'invalid' | null>(() => {
     if (!mediaHeaderType) return null;
     const value = headerMediaUrl.trim();
-    if (!value) return 'missing';
+    if (!value) return "missing";
     if (!isValidHttpUrl(value)) return 'invalid';
     return null;
   }, [mediaHeaderType, headerMediaUrl]);
@@ -270,15 +273,15 @@ export function Step3Personalize({
               // eslint-disable-next-line @next/next/no-img-element
               <img
                 src={headerMediaUrl.trim()}
-                alt="Header preview"
+                alt={uiText("Header preview")}
                 className="mt-3 max-h-40 rounded-lg border border-border object-contain"
               />
             )}
           {headerMediaError && (
             <p className="mt-1.5 text-xs text-amber-300">
               {headerMediaError === 'missing'
-                ? 'A media URL is required to send this template.'
-                : 'Enter a valid http(s) URL.'}
+                ? uiText("A media URL is required to send this template.")
+                : uiText("Enter a valid http(s) URL.")}
             </p>
           )}
         </div>
@@ -344,7 +347,7 @@ export function Step3Personalize({
                         onChange={(e) =>
                           updateVariable(key, { value: e.target.value })
                         }
-                        placeholder="Enter value..."
+                        placeholder={uiText("Enter value...")}
                         className="border-border bg-muted text-foreground placeholder:text-muted-foreground"
                       />
                     ) : mapping.type === 'field' ? (
@@ -376,10 +379,10 @@ export function Step3Personalize({
                           <SelectValue
                             placeholder={
                               loadingFields
-                                ? 'Loading…'
+                                ? uiText("Loading…")
                                 : customFields.length === 0
-                                  ? 'No custom fields'
-                                  : 'Select custom field…'
+                                  ? uiText("No custom fields")
+                                  : uiText("Select custom field…")
                             }
                           />
                         </SelectTrigger>
@@ -421,13 +424,10 @@ export function Step3Personalize({
       </div>
 
       {unmappedKeys.length > 0 && (
-        <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">
-          Map every placeholder before continuing — still missing{' '}
+        <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-300">{uiText("Map every placeholder before continuing — still missing")}{' '}
           <span className="font-mono font-semibold">
             {unmappedKeys.join(', ')}
-          </span>
-          . Otherwise those placeholders will ship to Meta as empty strings.
-        </div>
+          </span>{uiText(". Otherwise those placeholders will ship to Meta as empty strings.")}</div>
       )}
 
       <div className="flex items-center justify-between border-t border-border pt-4">

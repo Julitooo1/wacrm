@@ -31,6 +31,8 @@ import type { AiProvider } from '@/lib/ai/types';
 import type { AccountMember } from '@/types';
 import { fetchAccountMembers, memberLabel } from '@/lib/account/members';
 import { useTranslations } from 'next-intl';
+import { useUiText } from "@/i18n/ui-text";
+
 
 const MASKED_KEY = '••••••••••••••••';
 
@@ -49,6 +51,7 @@ const KEY_PLACEHOLDER: Record<AiProvider, string> = {
 };
 
 export function AiConfig() {
+  const uiText = useUiText();
   const { accountId, accountRole, profileLoading } = useAuth();
   const canEdit = accountRole ? canEditSettings(accountRole) : false;
   const t = useTranslations('Settings.aiConfig');
@@ -88,7 +91,7 @@ export function AiConfig() {
       const res = await fetch('/api/ai/config');
       const data = await res.json();
       if (!res.ok) {
-        toast.error(data.error ?? t('loadFailed'));
+        toast.error(uiText(data.error ?? t('loadFailed')));
         return;
       }
       if (data.configured) {
@@ -108,11 +111,11 @@ export function AiConfig() {
         setEmbeddingsKeyEdited(false);
       }
     } catch {
-      toast.error(t('loadFailed'));
+      toast.error(uiText(t('loadFailed')));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [uiText]);
 
   useEffect(() => {
     if (!accountId || loadedAccountIdRef.current === accountId) return;
@@ -166,10 +169,10 @@ export function AiConfig() {
         }),
       });
       const data = await res.json();
-      if (res.ok) toast.success(t('testSuccess'));
-      else toast.error(data.error ?? t('testRejected'));
+      if (res.ok) toast.success(uiText(t('testSuccess')));
+      else toast.error(uiText(data.error ?? t('testRejected')));
     } catch {
-      toast.error(t('testNetworkError'));
+      toast.error(uiText(t('testNetworkError')));
     } finally {
       setTesting(false);
     }
@@ -177,11 +180,11 @@ export function AiConfig() {
 
   const handleSave = async () => {
     if (!model.trim()) {
-      toast.error(t('missingModel'));
+      toast.error(uiText(t('missingModel')));
       return;
     }
     if (!configured && !keyEdited) {
-      toast.error(t('missingApiKey'));
+      toast.error(uiText(t('missingApiKey')));
       return;
     }
     setSaving(true);
@@ -193,13 +196,13 @@ export function AiConfig() {
       });
       const data = await res.json();
       if (res.ok) {
-        toast.success(t('saveSuccess'));
+        toast.success(uiText(t('saveSuccess')));
         await fetchConfig();
       } else {
-        toast.error(data.error ?? t('saveFailed'));
+        toast.error(uiText(data.error ?? t('saveFailed')));
       }
     } catch {
-      toast.error(t('saveFailed'));
+      toast.error(uiText(t('saveFailed')));
     } finally {
       setSaving(false);
     }
@@ -210,7 +213,7 @@ export function AiConfig() {
     try {
       const res = await fetch('/api/ai/config', { method: 'DELETE' });
       if (res.ok) {
-        toast.success(t('removeSuccess'));
+        toast.success(uiText(t('removeSuccess')));
         setConfigured(false);
         setHasStoredKey(false);
         setApiKey('');
@@ -221,10 +224,10 @@ export function AiConfig() {
         setHandoffAgentId('');
       } else {
         const data = await res.json();
-        toast.error(data.error ?? t('removeFailed'));
+        toast.error(uiText(data.error ?? t('removeFailed')));
       }
     } catch {
-      toast.error(t('removeFailed'));
+      toast.error(uiText(t('removeFailed')));
     } finally {
       setRemoving(false);
     }

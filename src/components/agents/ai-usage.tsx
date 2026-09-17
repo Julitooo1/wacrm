@@ -23,6 +23,10 @@ import { Skeleton } from '@/components/dashboard/skeleton';
 import { BarChart } from '@/components/tremor/bar-chart';
 import { formatCompactNumber } from '@/lib/currency';
 import { format, parseISO } from 'date-fns';
+import { useUiText } from "@/i18n/ui-text";
+import { useDateLocale } from "@/i18n/date-locale";
+
+
 
 interface UsageResponse {
   window_days: number;
@@ -54,6 +58,8 @@ const WINDOWS = [7, 30, 90] as const;
  * `GET /api/ai/usage` route. Renders nothing for non-admins.
  */
 export function AiUsageCard() {
+  const { dateLocale } = useDateLocale();
+  const uiText = useUiText();
   const { accountId, accountRole, profileLoading } = useAuth();
   const canView = accountRole ? canEditSettings(accountRole) : false;
 
@@ -70,18 +76,18 @@ export function AiUsageCard() {
       });
       const json = await res.json().catch(() => null);
       if (!res.ok) {
-        toast.error(json?.error ?? 'Failed to load usage');
+        toast.error(uiText(json?.error ?? uiText("Failed to load usage")));
         setData(null);
         return;
       }
       setData(json as UsageResponse);
     } catch {
-      toast.error('Failed to load usage');
+      toast.error(uiText("Failed to load usage"));
       setData(null);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [uiText]);
 
   useEffect(() => {
     if (!canView || !accountId) return;
@@ -95,7 +101,7 @@ export function AiUsageCard() {
   if (profileLoading || !canView) return null;
 
   const chartData =
-    data?.daily.map((d) => ({ day: format(parseISO(d.date), 'MMM d'), Tokens: d.tokens })) ??
+    data?.daily.map((d) => ({ day: format(parseISO(d.date), 'MMM d', { locale: dateLocale }), Tokens: d.tokens })) ??
     [];
   const hasSpend = (data?.totals.total_tokens ?? 0) > 0;
 
@@ -105,12 +111,8 @@ export function AiUsageCard() {
         <div className="flex items-start justify-between gap-4">
           <div>
             <CardTitle className="flex items-center gap-2 text-base">
-              <BarChart3 className="h-4 w-4 text-primary" /> Token usage
-            </CardTitle>
-            <CardDescription>
-              Tokens spent on your provider key by drafts and the auto-reply
-              bot. Counts only — no message content is stored here.
-            </CardDescription>
+              <BarChart3 className="h-4 w-4 text-primary" />{" " + uiText("Token usage") + ""}</CardTitle>
+            <CardDescription>{uiText("Tokens spent on your provider key by drafts and the auto-reply bot. Counts only — no message content is stored here.")}</CardDescription>
           </div>
           <Select
             value={String(days)}
@@ -121,9 +123,7 @@ export function AiUsageCard() {
             </SelectTrigger>
             <SelectContent>
               {WINDOWS.map((w) => (
-                <SelectItem key={w} value={String(w)}>
-                  Last {w} days
-                </SelectItem>
+                <SelectItem key={w} value={String(w)}>{"" + uiText("Last") + " "}{w}{" " + uiText("days") + ""}</SelectItem>
               ))}
             </SelectContent>
           </Select>
@@ -135,32 +135,28 @@ export function AiUsageCard() {
         ) : !hasSpend ? (
           <div className="flex flex-col items-center justify-center gap-2 py-10 text-center text-sm text-muted-foreground">
             <BarChart3 className="h-8 w-8 opacity-40" />
-            <p>No AI usage in the last {data.window_days} days yet.</p>
-            <p className="text-xs">
-              This fills in as the assistant drafts and auto-replies.
-            </p>
+            <p>{"" + uiText("No AI usage in the last") + " "}{data.window_days}{" " + uiText("days yet.") + ""}</p>
+            <p className="text-xs">{uiText("This fills in as the assistant drafts and auto-replies.")}</p>
           </div>
         ) : (
           <>
             <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-              <Stat label="Total tokens" value={formatCompactNumber(data.totals.total_tokens)} />
-              <Stat label="LLM calls" value={String(data.totals.calls)} />
+              <Stat label={uiText("Total tokens")} value={formatCompactNumber(data.totals.total_tokens)} />
+              <Stat label={uiText("LLM calls")} value={String(data.totals.calls)} />
               <Stat
-                label="Auto-reply"
+                label={uiText("Auto-reply")}
                 value={formatCompactNumber(data.by_mode.auto_reply.tokens)}
                 icon={Bot}
               />
               <Stat
-                label="Drafts"
+                label={uiText("Drafts")}
                 value={formatCompactNumber(data.by_mode.draft.tokens)}
                 icon={PencilLine}
               />
             </div>
 
             <div>
-              <p className="mb-2 text-xs font-medium text-muted-foreground">
-                Tokens per day
-              </p>
+              <p className="mb-2 text-xs font-medium text-muted-foreground">{uiText("Tokens per day")}</p>
               <BarChart
                 data={chartData}
                 index="day"
@@ -175,9 +171,7 @@ export function AiUsageCard() {
 
             {data.by_model.length > 0 && (
               <div>
-                <p className="mb-2 text-xs font-medium text-muted-foreground">
-                  By model
-                </p>
+                <p className="mb-2 text-xs font-medium text-muted-foreground">{uiText("By model")}</p>
                 <ul className="divide-y divide-border rounded-md border border-border">
                   {data.by_model.map((m) => (
                     <li
@@ -192,7 +186,7 @@ export function AiUsageCard() {
                       </span>
                       <span className="flex-shrink-0 tabular-nums text-muted-foreground">
                         {formatCompactNumber(m.tokens)} tok · {m.calls}{' '}
-                        {m.calls === 1 ? 'call' : 'calls'}
+                        {m.calls === 1 ? uiText("call") : uiText("calls")}
                       </span>
                     </li>
                   ))}
@@ -201,10 +195,7 @@ export function AiUsageCard() {
             )}
 
             {data.truncated && (
-              <p className="text-xs text-muted-foreground">
-                Showing a partial window — usage is high enough that only the
-                most recent records are summarized here.
-              </p>
+              <p className="text-xs text-muted-foreground">{uiText("Showing a partial window — usage is high enough that only the most recent records are summarized here.")}</p>
             )}
           </>
         )}

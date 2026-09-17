@@ -20,12 +20,15 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { format } from "date-fns";
 import { useTranslations } from "next-intl";
+import { useDateLocale } from "@/i18n/date-locale";
+
 
 interface ContactSidebarProps {
   contact: Contact | null;
 }
 
 export function ContactSidebar({ contact }: ContactSidebarProps) {
+  const { localeTag, dateLocale } = useDateLocale();
   const tSidebar = useTranslations("Inbox.sidebar");
   const tThread = useTranslations("Inbox.messageThread");
 
@@ -231,7 +234,7 @@ export function ContactSidebar({ contact }: ContactSidebarProps) {
                     <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
                       <span>
                         {deal.currency ?? "$"}
-                        {deal.value.toLocaleString()}
+                        {deal.value.toLocaleString(localeTag)}
                       </span>
                       {deal.stage && (
                         <span
@@ -289,7 +292,7 @@ export function ContactSidebar({ contact }: ContactSidebarProps) {
                       {note.note_text}
                     </p>
                     <p className="mt-1 text-[10px] text-muted-foreground">
-                      {format(new Date(note.created_at), "MMM d, yyyy HH:mm")}
+                      {format(new Date(note.created_at), "MMM d, yyyy HH:mm", { locale: dateLocale })}
                     </p>
                   </div>
                 ))}

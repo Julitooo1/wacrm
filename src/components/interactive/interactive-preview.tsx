@@ -3,6 +3,8 @@
 import { List, Reply } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { InteractiveMessagePayload } from "@/lib/whatsapp/interactive";
+import { useUiText } from "@/i18n/ui-text";
+
 
 /**
  * WhatsApp-style read-only render of an interactive message. Used both
@@ -21,6 +23,7 @@ export function InteractivePreview({
   payload: InteractiveMessagePayload;
   className?: string;
 }) {
+  const uiText = useUiText();
   return (
     <div
       className={cn(
@@ -36,7 +39,7 @@ export function InteractivePreview({
         ) : null}
         <p className="whitespace-pre-wrap break-words text-sm">
           {payload.body || (
-            <span className="text-muted-foreground">Message body…</span>
+            <span className="text-muted-foreground">{uiText("Message body…")}</span>
           )}
         </p>
         {payload.footer ? (

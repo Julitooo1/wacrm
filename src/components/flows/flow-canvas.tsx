@@ -97,6 +97,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useFlowEditor } from './flow-editor-state';
 import { NodeConfigForm } from './forms/node-config-form';
+import { useUiText } from "@/i18n/ui-text";
+
 
 // React-Flow node `data` payload — the bits our custom renderer needs.
 interface NodeData extends Record<string, unknown> {
@@ -274,6 +276,7 @@ export function FlowCanvas() {
 }
 
 function FlowCanvasInner() {
+  const uiText = useUiText();
   const t = useTranslations('Flows.builder');
   const {
     state,

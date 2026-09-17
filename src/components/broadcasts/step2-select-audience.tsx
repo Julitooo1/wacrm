@@ -18,6 +18,10 @@ import {
   X,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useUiText } from "@/i18n/ui-text";
+import { useDateLocale } from "@/i18n/date-locale";
+
+
 
 type AudienceType = 'all' | 'tags' | 'custom_field' | 'csv';
 type CustomFieldOperator = 'is' | 'is_not' | 'contains';
@@ -49,6 +53,8 @@ export function Step2SelectAudience({
   onNext,
   onBack,
 }: Step2Props) {
+  const { localeTag } = useDateLocale();
+  const uiText = useUiText();
   const t = useTranslations('Broadcasts.wizard');
 
   const OPERATOR_OPTIONS = useMemo<{ value: CustomFieldOperator; label: string }[]>(() => [
@@ -234,9 +240,9 @@ export function Step2SelectAudience({
 
     if (!result.ok) {
       toast.error(
-        result.error === 'missing_phone_column'
+        uiText(result.error === 'missing_phone_column'
           ? t('selectAudience.errorCsvMissingPhone')
-          : t('selectAudience.errorCsvParse'),
+          : t('selectAudience.errorCsvParse')),
       );
       // Clear the input so re-picking the same corrected file still
       // fires `change` (the browser suppresses it for an identical value).
@@ -509,24 +515,22 @@ export function Step2SelectAudience({
 
       {/* Audience Summary */}
       <div className="rounded-xl border border-border bg-card/50 p-4">
-        <p className="mb-2 text-sm font-medium text-foreground">Audience Summary</p>
+        <p className="mb-2 text-sm font-medium text-foreground">{uiText("Audience Summary")}</p>
         {loadingCount ? (
           <div className="flex items-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin text-primary" />
-            <span className="text-xs text-muted-foreground">Calculating…</span>
+            <span className="text-xs text-muted-foreground">{uiText("Calculating…")}</span>
           </div>
         ) : estimatedCount !== null ? (
           <div className="flex items-center gap-2">
             <Users className="h-4 w-4 text-primary" />
             <span className="text-sm text-foreground">
-              {estimatedCount.toLocaleString()}
+              {estimatedCount.toLocaleString(localeTag)}
             </span>
-            <span className="text-xs text-muted-foreground">estimated recipients</span>
+            <span className="text-xs text-muted-foreground">{uiText("estimated recipients")}</span>
           </div>
         ) : (
-          <p className="text-xs text-muted-foreground">
-            Select an audience type to see the estimate.
-          </p>
+          <p className="text-xs text-muted-foreground">{uiText("Select an audience type to see the estimate.")}</p>
         )}
       </div>
 

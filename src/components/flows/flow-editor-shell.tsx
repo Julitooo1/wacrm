@@ -36,6 +36,8 @@ import { NODE_META, nodeColors, type NodeType } from "./shared";
 import { cn } from "@/lib/utils";
 import type { FlowRow, FlowNodeRow } from "@/lib/flows/types";
 import { useTranslations } from "next-intl";
+import { useUiText } from "@/i18n/ui-text";
+
 
 /**
  * Below this viewport width we force list view and hide the toggle.
@@ -60,6 +62,7 @@ interface Props {
 }
 
 export function FlowEditorShell({ initialFlow, initialNodes }: Props) {
+  const uiText = useUiText();
   const t = useTranslations("Flows.builder");
 
   // Read the persisted choice in the useState initializer. Safe even
@@ -106,7 +109,7 @@ export function FlowEditorShell({ initialFlow, initialNodes }: Props) {
           <div className="flex items-center gap-4 px-6 py-3.5">
             <div
               role="group"
-              aria-label="Editor view"
+              aria-label={uiText("Editor view")}
               className="inline-flex gap-0.5 rounded-lg border border-border bg-muted p-0.5"
             >
               <SegButton

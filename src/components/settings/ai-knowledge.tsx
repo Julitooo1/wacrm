@@ -15,6 +15,8 @@ import {
   CardDescription,
 } from '@/components/ui/card';
 import { useTranslations } from 'next-intl';
+import { useUiText } from "@/i18n/ui-text";
+
 
 interface DocSummary {
   id: string;
@@ -34,6 +36,7 @@ export function AiKnowledgeCard({
   canEdit: boolean;
   hasEmbeddingsKey: boolean;
 }) {
+  const uiText = useUiText();
   const [docs, setDocs] = useState<DocSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState<EditTarget>(null);
@@ -50,13 +53,13 @@ export function AiKnowledgeCard({
       const res = await fetch('/api/ai/knowledge');
       const data = await res.json();
       if (res.ok) setDocs(data.documents ?? []);
-      else toast.error(data.error ?? t('loadFailed'));
+      else toast.error(uiText(data.error ?? t('loadFailed')));
     } catch {
-      toast.error(t('loadFailed'));
+      toast.error(uiText(t('loadFailed')));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [uiText]);
 
   useEffect(() => {
     if (!accountId || loadedAccountIdRef.current === accountId) return;
@@ -75,14 +78,14 @@ export function AiKnowledgeCard({
       const res = await fetch(`/api/ai/knowledge/${id}`);
       const data = await res.json();
       if (!res.ok) {
-        toast.error(data.error ?? t('openFailed'));
+        toast.error(uiText(data.error ?? t('openFailed')));
         return;
       }
       setEditing(id);
       setTitle(data.title ?? '');
       setContent(data.content ?? '');
     } catch {
-      toast.error(t('openFailed'));
+      toast.error(uiText(t('openFailed')));
     }
   };
 
@@ -94,7 +97,7 @@ export function AiKnowledgeCard({
 
   const save = async () => {
     if (!title.trim() || !content.trim()) {
-      toast.error(t('titleContentRequired'));
+      toast.error(uiText(t('titleContentRequired')));
       return;
     }
     setSaving(true);
@@ -111,15 +114,15 @@ export function AiKnowledgeCard({
       const data = await res.json();
       if (res.ok) {
         // A 200 with `warning` means saved but indexing degraded.
-        if (data.warning) toast.warning(data.warning);
-        else toast.success(isNew ? t('saveSuccessNew') : t('saveSuccessUpdate'));
+        if (data.warning) toast.warning(uiText(data.warning));
+        else toast.success(uiText(isNew ? t('saveSuccessNew') : t('saveSuccessUpdate')));
         cancelEdit();
         await fetchDocs();
       } else {
-        toast.error(data.error ?? t('saveFailed'));
+        toast.error(uiText(data.error ?? t('saveFailed')));
       }
     } catch {
-      toast.error(t('saveFailed'));
+      toast.error(uiText(t('saveFailed')));
     } finally {
       setSaving(false);
     }
@@ -129,14 +132,14 @@ export function AiKnowledgeCard({
     try {
       const res = await fetch(`/api/ai/knowledge/${id}`, { method: 'DELETE' });
       if (res.ok) {
-        toast.success(t('removeSuccess'));
+        toast.success(uiText(t('removeSuccess')));
         setDocs((d) => d.filter((x) => x.id !== id));
       } else {
         const data = await res.json();
-        toast.error(data.error ?? t('removeFailed'));
+        toast.error(uiText(data.error ?? t('removeFailed')));
       }
     } catch {
-      toast.error(t('removeFailed'));
+      toast.error(uiText(t('removeFailed')));
     }
   };
 
@@ -146,12 +149,12 @@ export function AiKnowledgeCard({
       const res = await fetch('/api/ai/knowledge/reindex', { method: 'POST' });
       const data = await res.json();
       if (res.ok && data.success) {
-        toast.success(t('reindexSuccess', { count: data.reindexed }));
+        toast.success(uiText(t('reindexSuccess', { count: data.reindexed })));
       } else {
-        toast.error(data.error ?? t('reindexFailed'));
+        toast.error(uiText(data.error ?? t('reindexFailed')));
       }
     } catch {
-      toast.error(t('reindexFailed'));
+      toast.error(uiText(t('reindexFailed')));
     } finally {
       setReindexing(false);
     }
@@ -199,7 +202,7 @@ export function AiKnowledgeCard({
                           size="sm"
                           className="h-8 w-8 p-0"
                           onClick={() => void openEdit(doc.id)}
-                          title="Edit"
+                          title={uiText("Edit")}
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
@@ -208,7 +211,7 @@ export function AiKnowledgeCard({
                           size="sm"
                           className="h-8 w-8 p-0 text-destructive hover:text-destructive"
                           onClick={() => void remove(doc.id)}
-                          title="Delete"
+                          title={uiText("Delete")}
                         >
                           <Trash2 className="h-4 w-4" />
                         </Button>

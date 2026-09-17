@@ -30,6 +30,8 @@ import { useCan } from "@/hooks/use-can";
 import { useAuth } from "@/hooks/use-auth";
 import { GatedButton } from "@/components/ui/gated-button";
 import { useTranslations } from "next-intl";
+import { useUiText } from "@/i18n/ui-text";
+
 
 // Pipeline creation is admin-class (settings-tier write under
 // the new RLS); deal creation is operational and only requires
@@ -46,6 +48,7 @@ const SPEC_DEFAULT_STAGES = [
 ];
 
 export default function PipelinesPage() {
+  const uiText = useUiText();
   const t = useTranslations("Pipelines.page");
   const supabase = createClient();
   const canEditSettings = useCan("edit-settings");
@@ -120,7 +123,7 @@ export default function PipelinesPage() {
 
     const { data: pipeline, error } = await supabase
       .from("pipelines")
-      .insert({ user_id: user.id, account_id: accountId, name: "Sales Pipeline" })
+      .insert({ user_id: user.id, account_id: accountId, name: uiText("Sales Pipeline") })
       .select()
       .single();
 
@@ -138,7 +141,7 @@ export default function PipelinesPage() {
     await supabase.from("pipeline_stages").insert(stagesPayload);
 
     return pipeline as Pipeline;
-  }, [supabase, accountId]);
+  }, [supabase, accountId, uiText]);
 
   // Initial load + seed-if-empty
   useEffect(() => {
@@ -225,11 +228,11 @@ export default function PipelinesPage() {
         .update({ stage_id: newStageId })
         .eq("id", dealId);
       if (error) {
-        toast.error(t("toastFailedMoveDeal"));
+        toast.error(uiText(t("toastFailedMoveDeal")));
         refreshDeals();
       }
     },
-    [supabase, refreshDeals, t],
+    [supabase, refreshDeals, t, uiText],
   );
 
   const handleAddDeal = useCallback(
@@ -262,7 +265,7 @@ export default function PipelinesPage() {
     }
     // pipelines.account_id is NOT NULL post-017 with no DB default.
     if (!accountId) {
-      toast.error(t("toastNotLinkedToAccount"));
+      toast.error(uiText(t("toastNotLinkedToAccount")));
       setCreating(false);
       return;
     }
@@ -274,7 +277,7 @@ export default function PipelinesPage() {
       .single();
 
     if (error || !pipeline) {
-      toast.error(t("toastFailedCreatePipeline"));
+      toast.error(uiText(t("toastFailedCreatePipeline")));
       setCreating(false);
       return;
     }
@@ -292,7 +295,7 @@ export default function PipelinesPage() {
     setSelectedPipelineId(pipeline.id);
     await refreshPipelines();
     setCreating(false);
-    toast.success(t("toastPipelineCreated"));
+    toast.success(uiText(t("toastPipelineCreated")));
   }
 
   const selectedPipeline = pipelines.find((p) => p.id === selectedPipelineId);

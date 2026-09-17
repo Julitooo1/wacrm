@@ -41,6 +41,10 @@ import {
   LayoutTemplate,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useUiText } from "@/i18n/ui-text";
+import { useDateLocale } from "@/i18n/date-locale";
+
+
 
 interface ContactDetailViewProps {
   open: boolean;
@@ -55,6 +59,8 @@ export function ContactDetailView({
   contactId,
   onUpdated,
 }: ContactDetailViewProps) {
+  const { localeTag } = useDateLocale();
+  const uiText = useUiText();
   const t = useTranslations('Contacts.detailView');
   const supabase = createClient();
   const { accountId, defaultCurrency } = useAuth();
@@ -199,7 +205,7 @@ export function ContactDetailView({
 
   async function saveDetails() {
     if (!contactId || !editPhone.trim()) {
-      toast.error(t('toastPhoneRequired'));
+      toast.error(uiText(t('toastPhoneRequired')));
       return;
     }
 
@@ -216,9 +222,9 @@ export function ContactDetailView({
       .eq('id', contactId);
 
     if (error) {
-      toast.error(t('toastUpdateFailed'));
+      toast.error(uiText(t('toastUpdateFailed')));
     } else {
-      toast.success(t('toastUpdated'));
+      toast.success(uiText(t('toastUpdated')));
       fetchContact();
       onUpdated();
     }
@@ -241,7 +247,7 @@ export function ContactDetailView({
       }
       onUpdated();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : t('toastUpdateFailed'));
+      toast.error(uiText(error instanceof Error ? error.message : t('toastUpdateFailed')));
     }
     setSavingTags(false);
   }
@@ -255,7 +261,7 @@ export function ContactDetailView({
     } = await supabase.auth.getSession();
     const user = session?.user;
     if (!user || !accountId) {
-      toast.error(t('toastNotAuthenticated'));
+      toast.error(uiText(t('toastNotAuthenticated')));
       setSavingNote(false);
       return;
     }
@@ -268,11 +274,11 @@ export function ContactDetailView({
     });
 
     if (error) {
-      toast.error(t('toastNoteAddFailed'));
+      toast.error(uiText(t('toastNoteAddFailed')));
     } else {
       setNewNote('');
       fetchNotes();
-      toast.success(t('toastNoteAdded'));
+      toast.success(uiText(t('toastNoteAdded')));
     }
     setSavingNote(false);
   }
@@ -284,10 +290,10 @@ export function ContactDetailView({
       .eq('id', noteId);
 
     if (error) {
-      toast.error(t('toastNoteDeleteFailed'));
+      toast.error(uiText(t('toastNoteDeleteFailed')));
     } else {
       setNotes((prev) => prev.filter((n) => n.id !== noteId));
-      toast.success(t('toastNoteDeleted'));
+      toast.success(uiText(t('toastNoteDeleted')));
     }
   }
 
@@ -317,9 +323,9 @@ export function ContactDetailView({
         if (error) throw error;
       }
 
-      toast.success(t('toastCustomFieldsSaved'));
+      toast.success(uiText(t('toastCustomFieldsSaved')));
     } catch {
-      toast.error(t('toastCustomFieldsFailed'));
+      toast.error(uiText(t('toastCustomFieldsFailed')));
     }
     setSavingCustom(false);
   }
@@ -353,14 +359,14 @@ export function ContactDetailView({
       const payload = await res.json().catch(() => ({}));
       if (!res.ok) {
         const reason = payload?.error || `HTTP ${res.status}`;
-        toast.error(t('toastTemplateFailed', { reason }));
+        toast.error(uiText(t('toastTemplateFailed', { reason })));
         return;
       }
 
-      toast.success(t('toastTemplateSent', { name: template.name }));
+      toast.success(uiText(t('toastTemplateSent', { name: template.name })));
     } catch (err) {
-      const reason = err instanceof Error ? err.message : 'network error';
-      toast.error(`Failed to send template: ${reason}`);
+      const reason = err instanceof Error ? err.message : uiText("network error");
+      toast.error(uiText(`Failed to send template: ${reason}`));
     } finally {
       setSendingTemplate(false);
     }
@@ -627,7 +633,7 @@ export function ContactDetailView({
                           </button>
                         </div>
                         <p className="text-xs text-muted-foreground mt-1.5">
-                          {new Date(note.created_at).toLocaleDateString('en-US', {
+                          {new Date(note.created_at).toLocaleDateString(localeTag, {
                             month: 'short',
                             day: 'numeric',
                             year: 'numeric',

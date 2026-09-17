@@ -52,6 +52,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { createClient } from '@/lib/supabase/client';
+import { useUiText } from "@/i18n/ui-text";
+import { useDateLocale } from "@/i18n/date-locale";
+
+
 
 interface PeekOk {
   ok: true;
@@ -91,6 +95,8 @@ const FAIL_COPY: Record<PeekFail['reason'], { title: string; body: string }> = {
 };
 
 export default function JoinPage() {
+  const { localeTag } = useDateLocale();
+  const uiText = useUiText();
   const params = useParams<{ token: string }>();
   const token = params?.token;
 
@@ -183,24 +189,24 @@ export default function JoinPage() {
         if (res.status === 409) {
           setConflictMessage(
             payload.error ||
-              'You are already in another account. Sign in with a different email to join this one.',
+              uiText("You are already in another account. Sign in with a different email to join this one."),
           );
         } else {
-          toast.error(payload.error || 'Failed to accept invitation');
+          toast.error(uiText(payload.error || uiText("Failed to accept invitation")));
         }
         setAccepting(false);
         return;
       }
-      toast.success('Welcome to the team');
+      toast.success(uiText("Welcome to the team"));
       // Full reload (not router.push) so AuthProvider re-fetches
       // the profile with the new account_id and account_role.
       window.location.href = '/dashboard';
     } catch (err) {
       console.error('[join] redeem error:', err);
-      toast.error('Could not reach the server');
+      toast.error(uiText("Could not reach the server"));
       setAccepting(false);
     }
-  }, [token]);
+  }, [token, uiText]);
 
   const handleSignOutAndRetry = useCallback(async () => {
     setSigningOut(true);
@@ -212,10 +218,10 @@ export default function JoinPage() {
       window.location.reload();
     } catch (err) {
       console.error('[join] sign-out error:', err);
-      toast.error('Could not sign out. Try refreshing the page.');
+      toast.error(uiText("Could not sign out. Try refreshing the page."));
       setSigningOut(false);
     }
-  }, []);
+  }, [uiText]);
 
   // ----- Loading state (peek pending OR auth not yet resolved) -----
   if (peek === null || authedUserId === undefined) {
@@ -223,7 +229,7 @@ export default function JoinPage() {
       <Card className="w-full max-w-md border-border bg-card">
         <CardContent className="flex flex-col items-center gap-3 py-12">
           <Loader2 className="size-6 animate-spin text-primary" />
-          <p className="text-sm text-muted-foreground">Verifying invitation…</p>
+          <p className="text-sm text-muted-foreground">{uiText("Verifying invitation…")}</p>
         </CardContent>
       </Card>
     );
@@ -238,9 +244,9 @@ export default function JoinPage() {
           <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-red-500/10">
             <MailX className="h-6 w-6 text-red-400" />
           </div>
-          <CardTitle className="text-xl text-foreground">{copy.title}</CardTitle>
+          <CardTitle className="text-xl text-foreground">{uiText(copy.title)}</CardTitle>
           <CardDescription className="text-muted-foreground">
-            {copy.body}
+            {uiText(copy.body)}
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
@@ -256,32 +262,24 @@ export default function JoinPage() {
               <Button
                 onClick={loadPeekAndAuth}
                 className="w-full bg-primary text-primary-foreground hover:bg-primary/90"
-              >
-                Try again
-              </Button>
+              >{uiText("Try again")}</Button>
               <Link href="/signup">
                 <Button
                   variant="outline"
                   className="w-full border-border text-muted-foreground hover:bg-muted hover:text-foreground"
-                >
-                  Create a new account instead
-                </Button>
+                >{uiText("Create a new account instead")}</Button>
               </Link>
             </>
           ) : (
             <>
               <Link href="/signup">
-                <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-                  Create a new account instead
-                </Button>
+                <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">{uiText("Create a new account instead")}</Button>
               </Link>
               <Link href="/login">
                 <Button
                   variant="outline"
                   className="w-full border-border text-muted-foreground hover:bg-muted hover:text-foreground"
-                >
-                  Sign in
-                </Button>
+                >{uiText("Sign in")}</Button>
               </Link>
             </>
           )}
@@ -296,18 +294,15 @@ export default function JoinPage() {
       <div className="mb-2 flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
         <UsersRound className="h-6 w-6 text-primary" />
       </div>
-      <CardTitle className="text-xl text-foreground">
-        You&apos;re invited to{' '}
+      <CardTitle className="text-xl text-foreground">{uiText("You're invited to")}{' '}
         <span className="text-primary">{peek.account_name}</span>
       </CardTitle>
-      <CardDescription className="text-muted-foreground">
-        You&apos;ll join as{' '}
+      <CardDescription className="text-muted-foreground">{uiText("You'll join as")}{' '}
         <span className="inline-flex items-center gap-1 text-foreground">
           <ShieldCheck className="size-3.5 text-primary" />
-          {ROLE_LABEL[peek.role]}
-        </span>
-        . Link valid until{' '}
-        {new Date(peek.expires_at).toLocaleDateString(undefined, {
+          {uiText(ROLE_LABEL[peek.role])}
+        </span>{uiText(". Link valid until")}{' '}
+        {new Date(peek.expires_at).toLocaleDateString(localeTag, {
           year: 'numeric',
           month: 'short',
           day: 'numeric',
@@ -331,21 +326,14 @@ export default function JoinPage() {
             >
               {accepting ? (
                 <>
-                  <Loader2 className="size-4 animate-spin" />
-                  Accepting…
-                </>
+                  <Loader2 className="size-4 animate-spin" />{uiText("Accepting…")}</>
               ) : (
                 <>
-                  <CheckCircle className="size-4" />
-                  Accept invitation
-                </>
+                  <CheckCircle className="size-4" />{uiText("Accept invitation")}</>
               )}
             </Button>
-            <p className="text-center text-xs text-muted-foreground">
-              Accepting moves your login into{' '}
-              <span className="text-muted-foreground">{peek.account_name}</span>. Your
-              empty personal account from signup will be cleaned up.
-            </p>
+            <p className="text-center text-xs text-muted-foreground">{uiText("Accepting moves your login into")}{' '}
+              <span className="text-muted-foreground">{peek.account_name}</span>{uiText(". Your empty personal account from signup will be cleaned up.")}</p>
           </CardContent>
         </Card>
 
@@ -362,30 +350,21 @@ export default function JoinPage() {
           <DialogContent className="bg-popover border-border sm:max-w-md">
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2 text-popover-foreground">
-                <AlertTriangle className="size-4 text-amber-400" />
-                Can&apos;t join {peek.account_name} with this account
-              </DialogTitle>
+                <AlertTriangle className="size-4 text-amber-400" />{"" + uiText("Can't join") + " "}{peek.account_name}{" " + uiText("with this account") + ""}</DialogTitle>
               <DialogDescription className="text-muted-foreground">
                 {conflictMessage}
               </DialogDescription>
             </DialogHeader>
             <div className="space-y-2 py-2 text-xs text-muted-foreground">
-              <p>
-                To join{' '}
-                <span className="text-popover-foreground">{peek.account_name}</span>,
-                sign out and sign up again with a different email address.
-                The invite link stays valid as long as it hasn&apos;t
-                expired.
-              </p>
+              <p>{uiText("To join")}{' '}
+                <span className="text-popover-foreground">{peek.account_name}</span>{uiText(", sign out and sign up again with a different email address. The invite link stays valid as long as it hasn't expired.")}</p>
             </div>
             <DialogFooter className="bg-popover border-border">
               <Button
                 variant="outline"
                 onClick={() => setConflictMessage(null)}
                 className="border-border text-popover-foreground hover:bg-muted"
-              >
-                Stay signed in
-              </Button>
+              >{uiText("Stay signed in")}</Button>
               <Button
                 onClick={handleSignOutAndRetry}
                 disabled={signingOut}
@@ -393,11 +372,9 @@ export default function JoinPage() {
               >
                 {signingOut ? (
                   <>
-                    <Loader2 className="size-4 animate-spin" />
-                    Signing out…
-                  </>
+                    <Loader2 className="size-4 animate-spin" />{uiText("Signing out…")}</>
                 ) : (
-                  'Sign out & use a different email'
+                  uiText("Sign out & use a different email")
                 )}
               </Button>
             </DialogFooter>
@@ -413,17 +390,13 @@ export default function JoinPage() {
       {inviteHeader}
       <CardContent className="flex flex-col gap-2">
         <Link href={`/signup?invite=${encodeURIComponent(token!)}`}>
-          <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">
-            Create account &amp; join
-          </Button>
+          <Button className="w-full bg-primary text-primary-foreground hover:bg-primary/90">{uiText("Create account & join")}</Button>
         </Link>
         <Link href={`/login?invite=${encodeURIComponent(token!)}`}>
           <Button
             variant="outline"
             className="w-full border-border text-muted-foreground hover:bg-muted hover:text-foreground"
-          >
-            I already have an account
-          </Button>
+          >{uiText("I already have an account")}</Button>
         </Link>
       </CardContent>
     </Card>

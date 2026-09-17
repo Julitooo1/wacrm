@@ -55,6 +55,8 @@ import {
 import { validateInteractivePayload } from "@/lib/whatsapp/interactive";
 import type { InteractiveMessagePayload, QuickReply } from "@/types";
 import { QuickReplyPicker } from "./quick-reply-picker";
+import { useUiText } from "@/i18n/ui-text";
+
 
 /** Media content types an agent can send from the composer. */
 export type ComposerMediaKind = "image" | "video" | "document" | "audio";
@@ -141,6 +143,7 @@ export function MessageComposer({
   replyTo,
   onClearReply,
 }: MessageComposerProps) {
+  const uiText = useUiText();
   const t = useTranslations("Inbox.composer");
 
   const [text, setText] = useState("");
@@ -269,15 +272,15 @@ export function MessageComposer({
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
         if (data.code === "ai_not_configured") {
-          toast.error("AI isn't set up yet — enable it in Settings → AI Assistant.");
+          toast.error(uiText("AI isn't set up yet — enable it in Settings → AI Assistant."));
         } else {
-          toast.error(data.error ?? "Couldn't draft a reply.");
+          toast.error(uiText(data.error ?? uiText("Couldn't draft a reply.")));
         }
         return;
       }
       const draftText = typeof data.draft === "string" ? data.draft.trim() : "";
       if (!draftText) {
-        toast.error("The assistant didn't return a reply.");
+        toast.error(uiText("The assistant didn't return a reply."));
         return;
       }
       setText(draftText);
@@ -292,11 +295,11 @@ export function MessageComposer({
         }
       });
     } catch {
-      toast.error("Couldn't reach the AI assistant.");
+      toast.error(uiText("Couldn't reach the AI assistant."));
     } finally {
       setDrafting(false);
     }
-  }, [drafting, conversationId, adjustHeight]);
+  }, [drafting, conversationId, adjustHeight, uiText]);
 
   // ---- Interactive message + quick replies --------------------------
 
@@ -311,19 +314,19 @@ export function MessageComposer({
   const sendInteractive = useCallback(() => {
     const result = validateInteractivePayload(interactivePayload);
     if (!result.ok) {
-      toast.error(result.error);
+      toast.error(uiText(result.error));
       return;
     }
     onSendInteractive(interactivePayload, replyTo?.id);
     setInteractiveOpen(false);
     onClearReply?.();
-  }, [interactivePayload, onSendInteractive, replyTo?.id, onClearReply]);
+  }, [interactivePayload, onSendInteractive, replyTo?.id, onClearReply, uiText]);
 
   // Persist the current builder payload as a reusable interactive snippet.
   const saveAsQuickReply = useCallback(async () => {
     const result = validateInteractivePayload(interactivePayload);
     if (!result.ok) {
-      toast.error(result.error);
+      toast.error(uiText(result.error));
       return;
     }
     const title = window
@@ -343,16 +346,16 @@ export function MessageComposer({
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        toast.error(data.error ?? t("quickReplySaveError"));
+        toast.error(uiText(data.error ?? t("quickReplySaveError")));
         return;
       }
-      toast.success(t("quickReplySaved"));
+      toast.success(uiText(t("quickReplySaved")));
     } catch {
-      toast.error(t("quickReplySaveError"));
+      toast.error(uiText(t("quickReplySaveError")));
     } finally {
       setSavingQuickReply(false);
     }
-  }, [interactivePayload, t]);
+  }, [interactivePayload, t, uiText]);
 
   // A picked quick reply: text fills the composer; interactive opens the
   // builder pre-filled so the agent can tweak before sending.
@@ -390,9 +393,9 @@ export function MessageComposer({
       const max = MEDIA_MAX_BYTES_BY_KIND[kind];
       if (file.size > max) {
         toast.error(
-          `File is ${(file.size / 1024 / 1024).toFixed(1)} MB — ${kind} limit is ${Math.round(
+          uiText(`File is ${(file.size / 1024 / 1024).toFixed(1)} MB — ${kind} limit is ${Math.round(
             max / 1024 / 1024,
-          )} MB.`,
+          )} MB.`),
         );
         return;
       }
@@ -403,12 +406,12 @@ export function MessageComposer({
         removeStaged(draftRef.current?.path);
         setDraft({ kind, mediaUrl: publicUrl, path, filename: file.name, caption: "" });
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Upload failed.");
+        toast.error(uiText(err instanceof Error ? err.message : uiText("Upload failed.")));
       } finally {
         setBusy(false);
       }
     },
-    [removeStaged],
+    [removeStaged, uiText],
   );
 
   const handlePicked = useCallback(
@@ -431,7 +434,7 @@ export function MessageComposer({
       });
       if (file.size === 0) return; // cancelled / empty take
       if (file.size > MEDIA_MAX_BYTES_BY_KIND.audio) {
-        toast.error("Recording is too long (over 16 MB).");
+        toast.error(uiText("Recording is too long (over 16 MB)."));
         return;
       }
       setBusy(true);
@@ -440,18 +443,18 @@ export function MessageComposer({
         removeStaged(draftRef.current?.path);
         setDraft({ kind: "audio", mediaUrl: publicUrl, path, filename: file.name, caption: "" });
       } catch (err) {
-        toast.error(err instanceof Error ? err.message : "Upload failed.");
+        toast.error(uiText(err instanceof Error ? err.message : uiText("Upload failed.")));
       } finally {
         setBusy(false);
       }
     },
-    [removeStaged],
+    [removeStaged, uiText],
   );
 
   const startRecording = useCallback(async () => {
     if (inputsDisabled || busy || recording) return;
     if (!navigator.mediaDevices?.getUserMedia || typeof AudioContext === "undefined") {
-      toast.error("Voice recording isn't supported in this browser.");
+      toast.error(uiText("Voice recording isn't supported in this browser."));
       return;
     }
     try {
@@ -478,9 +481,9 @@ export function MessageComposer({
     } catch {
       void recorderRef.current?.stop().catch(() => {});
       recorderRef.current = null;
-      toast.error("Microphone access denied or unavailable.");
+      toast.error(uiText("Microphone access denied or unavailable."));
     }
-  }, [inputsDisabled, busy, recording, finalizeRecording]);
+  }, [inputsDisabled, busy, recording, finalizeRecording, uiText]);
 
   const stopRecording = useCallback(() => {
     clearTimer();

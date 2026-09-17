@@ -22,6 +22,8 @@ import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import type { ValidationIssue } from "@/lib/flows/validate";
 import { useFlowEditor } from "./flow-editor-state";
+import { useUiText } from "@/i18n/ui-text";
+
 
 export function ValidationPanel() {
   const { issues, requestFlash } = useFlowEditor();
@@ -79,6 +81,7 @@ export function IssueLine({
   onJump?: (key: string) => void;
   t?: ReturnType<typeof useTranslations>;
 }) {
+  const uiText = useUiText();
   const tone =
     issue.severity === "error" ? "text-red-300" : "text-amber-300";
   const iconTone =
@@ -92,7 +95,7 @@ export function IssueLine({
             {issue.node_key}
           </code>
         )}
-        {issue.message}
+        {uiText(issue.message)}
       </span>
     </>
   );
@@ -109,7 +112,7 @@ export function IssueLine({
           "flex w-full items-start gap-2 rounded-md px-2 py-1 text-left text-xs transition-colors hover:bg-muted/60",
           tone,
         )}
-        aria-label={t ? t("jumpToNode", { key: issue.node_key! }) : `Jump to node ${issue.node_key}`}
+        aria-label={t ? t("jumpToNode", { key: issue.node_key! }) : uiText(`Jump to node ${issue.node_key}`)}
       >
         {body}
       </button>

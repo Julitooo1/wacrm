@@ -22,8 +22,11 @@ import {
   DialogFooter,
 } from '@/components/ui/dialog';
 import { useTranslations } from 'next-intl';
+import { useUiText } from "@/i18n/ui-text";
+
 
 export function SessionsCard() {
+  const uiText = useUiText();
   const t = useTranslations('Settings.profile');
   const supabase = createClient();
   const [open, setOpen] = useState(false);
@@ -37,13 +40,13 @@ export function SessionsCard() {
       // triggers the usual redirect.
       const { error } = await supabase.auth.signOut({ scope: 'global' });
       if (error) {
-        toast.error(t('signOutFailed', { message: error.message }));
+        toast.error(uiText(t('signOutFailed', { message: error.message })));
         return;
       }
       window.location.href = '/login';
     } catch (err) {
-      const msg = err instanceof Error ? err.message : 'Unknown error';
-      toast.error(msg);
+      const msg = err instanceof Error ? err.message : uiText("Unknown error");
+      toast.error(uiText(msg));
     } finally {
       setSigningOut(false);
     }

@@ -52,6 +52,8 @@ import {
   extractVariableIndices,
   TEMPLATE_LIMITS,
 } from '@/lib/whatsapp/template-validators';
+import { useUiText } from "@/i18n/ui-text";
+
 
 const CATEGORIES = ['Marketing', 'Utility', 'Authentication'] as const;
 type HeaderFormat = 'none' | 'text' | 'image' | 'video' | 'document';
@@ -125,6 +127,7 @@ function emptyButton(type: TemplateButton['type']): TemplateButton {
 }
 
 export function TemplateManager() {
+  const uiText = useUiText();
   const t = useTranslations('Settings.templates');
   const supabase = createClient();
   const { user, loading: authLoading } = useAuth();
@@ -199,7 +202,7 @@ export function TemplateManager() {
       setTemplates(data || []);
     } catch (err) {
       console.error('Failed to fetch templates:', err);
-      toast.error(t('toastLoadFailed'));
+      toast.error(uiText(t('toastLoadFailed')));
     } finally {
       setLoading(false);
     }
@@ -275,27 +278,27 @@ export function TemplateManager() {
       const data = await res.json();
       if (!res.ok) {
         throw new Error(
-          data?.error || `${isEdit ? 'Edit' : 'Submit'} failed (HTTP ${res.status})`,
+          data?.error || `${isEdit ? uiText("Edit") : 'Submit'} failed (HTTP ${res.status})`,
         );
       }
       // Refresh first, then close — re-opening the dialog
       // immediately should not show a stale list.
       if (user) await fetchTemplates(user.id);
       toast.success(
-        data.dry_run
+        uiText(data.dry_run
           ? isEdit
             ? t('toastSaveEditDry')
             : t('toastSaveNewDry')
           : isEdit
             ? t('toastSubmitEditSuccess')
-            : t('toastSubmitNewSuccess'),
+            : t('toastSubmitNewSuccess')),
       );
       setDialogOpen(false);
       setForm(emptyForm);
       setEditingId(null);
     } catch (err) {
       console.error('Submit error:', err);
-      toast.error(err instanceof Error ? err.message : t('toastSubmitFailed'));
+      toast.error(uiText(err instanceof Error ? err.message : t('toastSubmitFailed')));
     } finally {
       setSubmitting(false);
     }
@@ -308,13 +311,13 @@ export function TemplateManager() {
       const res = await fetch('/api/whatsapp/templates/sync', { method: 'POST' });
       const data = await res.json();
       if (!res.ok) {
-        throw new Error(data?.error || `Sync failed (HTTP ${res.status})`);
+        throw new Error(data?.error || uiText(`Sync failed (HTTP ${res.status})`));
       }
       toast.success(
-        t('toastSyncCount', { total: data.total }) +
+        uiText(t('toastSyncCount', { total: data.total }) +
           (data.inserted || data.updated
             ? t('toastSyncDetails', { inserted: data.inserted, updated: data.updated })
-            : ''),
+            : '')),
       );
       if (Array.isArray(data.errors) && data.errors.length > 0) {
         const preview = data.errors.slice(0, 3).map(
@@ -322,22 +325,22 @@ export function TemplateManager() {
             `${e.name} (${e.language})`,
         );
         const suffix =
-          data.errors.length > 3 ? `, +${data.errors.length - 3} more` : '';
-        toast.error(t('toastSyncFailed', { preview: preview.join(', ') + suffix }));
+          data.errors.length > 3 ? uiText(`, +${data.errors.length - 3} more`) : '';
+        toast.error(uiText(t('toastSyncFailed', { preview: preview.join(', ') + suffix })));
       }
       if (data.truncated) {
         // Use error (not warning) so the message survives long
         // enough to read — sonner's `warning` auto-dismisses on
         // the same short timer as `success`.
         toast.error(
-          t('toastSyncTruncated'),
+          uiText(t('toastSyncTruncated')),
           { duration: 10000 },
         );
       }
       await fetchTemplates(user.id);
     } catch (err) {
       console.error('Template sync error:', err);
-      toast.error(err instanceof Error ? err.message : t('toastSyncError'));
+      toast.error(uiText(err instanceof Error ? err.message : t('toastSyncError')));
     } finally {
       setSyncing(false);
     }
@@ -356,14 +359,14 @@ export function TemplateManager() {
       });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
-        throw new Error(data?.error || `Delete failed (HTTP ${res.status})`);
+        throw new Error(data?.error || uiText(`Delete failed (HTTP ${res.status})`));
       }
-      toast.success(t('toastDeleteSuccess'));
+      toast.success(uiText(t('toastDeleteSuccess')));
       setTemplates((prev) => prev.filter((t) => t.id !== target.id));
       setTemplateToDelete(null);
     } catch (err) {
       console.error('Delete error:', err);
-      toast.error(err instanceof Error ? err.message : t('toastDeleteError'));
+      toast.error(uiText(err instanceof Error ? err.message : t('toastDeleteError')));
     } finally {
       setDeletingId(null);
     }
@@ -460,12 +463,12 @@ export function TemplateManager() {
 
   async function handleHeaderImageFile(file: File) {
     if (!['image/jpeg', 'image/png'].includes(file.type)) {
-      toast.error(t('toastInvalidImage'));
+      toast.error(uiText(t('toastInvalidImage')));
       return;
     }
     if (file.size > MEDIA_MAX_BYTES_BY_KIND.image) {
       toast.error(
-        t('toastImageTooLarge', { size: (file.size / 1024 / 1024).toFixed(1) }),
+        uiText(t('toastImageTooLarge', { size: (file.size / 1024 / 1024).toFixed(1) })),
       );
       return;
     }
@@ -473,9 +476,9 @@ export function TemplateManager() {
     try {
       const { publicUrl } = await uploadAccountMedia('chat-media', file);
       setForm((f) => ({ ...f, header_media_url: publicUrl }));
-      toast.success(t('toastUploadSuccess'));
+      toast.success(uiText(t('toastUploadSuccess')));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : t('toastUploadFailed'));
+      toast.error(uiText(err instanceof Error ? err.message : t('toastUploadFailed')));
     } finally {
       setUploadingHeader(false);
     }
@@ -528,10 +531,10 @@ export function TemplateManager() {
                       <Badge
                         className={`text-xs border ${categoryColors[template.category] || ''}`}
                       >
-                        {template.category}
+                        {uiText(template.category)}
                       </Badge>
                       <Badge className={`text-xs border ${status.classes}`}>
-                        {status.label}
+                        {uiText(status.label)}
                       </Badge>
                       {template.language && (
                         <span className="text-xs text-muted-foreground uppercase">
@@ -547,9 +550,9 @@ export function TemplateManager() {
                                 ? 'text-yellow-400'
                                 : 'text-red-400'
                           }`}
-                          title="Meta quality score"
+                          title={uiText("Meta quality score")}
                         >
-                          {template.quality_score}
+                          {uiText(template.quality_score)}
                         </span>
                       )}
                     </div>
@@ -696,7 +699,7 @@ export function TemplateManager() {
                         value={cat}
                         className="text-popover-foreground focus:bg-muted focus:text-popover-foreground"
                       >
-                        {cat}
+                        {uiText(cat)}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -775,7 +778,7 @@ export function TemplateManager() {
                 <div className="space-y-2 mt-2">
                   <Input
                     id="template-header-text"
-                    aria-label="Header text"
+                    aria-label={uiText("Header text")}
                     placeholder={t.raw('headerTextPlaceholder')}
                     value={form.header_content}
                     onChange={(e) =>
@@ -845,7 +848,7 @@ export function TemplateManager() {
                     // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={form.header_media_url}
-                      alt="Header sample"
+                      alt={uiText("Header sample")}
                       className="max-h-28 rounded-md border border-border object-contain"
                     />
                   )}

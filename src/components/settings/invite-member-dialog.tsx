@@ -38,6 +38,8 @@ import {
 } from '@/components/ui/select';
 import { useTranslations } from 'next-intl';
 import { useAuth } from '@/hooks/use-auth';
+import { useUiText } from "@/i18n/ui-text";
+
 
 type InviteRole = 'admin' | 'agent' | 'viewer';
 
@@ -74,6 +76,7 @@ export function InviteMemberDialog({
   onOpenChange,
   onCreated,
 }: InviteMemberDialogProps) {
+  const uiText = useUiText();
   const t = useTranslations('Settings.invite');
   const tRoles = useTranslations('Settings.roles');
   const { account } = useAuth();
@@ -100,7 +103,7 @@ export function InviteMemberDialog({
     // net for that path.
     const trimmedLabel = label.trim();
     if (trimmedLabel.length > MAX_LABEL_LEN) {
-      toast.error(t('labelTooLong', { max: MAX_LABEL_LEN }));
+      toast.error(uiText(t('labelTooLong', { max: MAX_LABEL_LEN })));
       return;
     }
     setSubmitting(true);
@@ -117,7 +120,7 @@ export function InviteMemberDialog({
 
       if (!res.ok) {
         const payload = await res.json().catch(() => ({}));
-        toast.error(payload.error || 'Failed to create invitation');
+        toast.error(uiText(payload.error || uiText("Failed to create invitation")));
         return;
       }
 
@@ -135,12 +138,12 @@ export function InviteMemberDialog({
         // string if `account` hasn't loaded yet (shouldn't happen
         // — the dialog requires admin+ which requires a loaded
         // profile — but stay safe).
-        accountName: account?.name ?? 'our wacrm account',
+        accountName: account?.name ?? uiText("our wacrm account"),
       });
       onCreated();
     } catch (err) {
       console.error('[InviteMemberDialog] create error:', err);
-      toast.error('Could not reach the server. Try again?');
+      toast.error(uiText("Could not reach the server. Try again?"));
     } finally {
       setSubmitting(false);
     }
@@ -150,12 +153,12 @@ export function InviteMemberDialog({
     if (!result) return;
     try {
       await navigator.clipboard.writeText(result.url);
-      toast.success(t('copied'));
+      toast.success(uiText(t('copied')));
     } catch {
       // Most likely "not in a secure context" — happens on http://
       // local IPs. Surface the link in the toast so the admin can
       // hand-copy it.
-      toast.error(t('clipboardBlocked'));
+      toast.error(uiText(t('clipboardBlocked')));
     }
   }
 
@@ -164,7 +167,7 @@ export function InviteMemberDialog({
     // they're being invited to before clicking through. This matters
     // for users in multi-team contexts where "our wacrm account"
     // wouldn't be enough to disambiguate.
-    const accountName = result?.accountName ?? 'our wacrm account';
+    const accountName = result?.accountName ?? uiText("our wacrm account");
     const message = t('whatsappMessage', { accountName, expiresInDays: result?.expiresInDays ?? 0, url });
     return `https://wa.me/?text=${encodeURIComponent(message)}`;
   }

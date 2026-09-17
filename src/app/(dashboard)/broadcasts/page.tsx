@@ -18,6 +18,10 @@ import { useCan } from '@/hooks/use-can';
 import { GatedButton } from '@/components/ui/gated-button';
 import { getBroadcastStatus } from '@/lib/broadcast-status';
 import { useTranslations } from 'next-intl';
+import { useUiText } from "@/i18n/ui-text";
+import { useDateLocale } from "@/i18n/date-locale";
+
+
 
 /**
  * Poll cadence while any broadcast is sending. Kept modest so we don't
@@ -58,6 +62,8 @@ function RateCell({
 }
 
 export default function BroadcastsPage() {
+  const { localeTag } = useDateLocale();
+  const uiText = useUiText();
   const router = useRouter();
   const t = useTranslations('Broadcasts.page');
   const tStatus = useTranslations('Broadcasts.status');
@@ -157,7 +163,7 @@ export default function BroadcastsPage() {
       {anySending && (
         <div
           role="progressbar"
-          aria-label="Broadcast in progress"
+          aria-label={uiText("Broadcast in progress")}
           className="broadcast-indeterminate fixed inset-x-0 top-0 z-40 h-0.5 overflow-hidden bg-muted"
         >
           <div className="broadcast-indeterminate-bar h-0.5 bg-primary" />
@@ -277,7 +283,7 @@ export default function BroadcastsPage() {
                       </span>
                     </TableCell>
                     <TableCell className="hidden text-muted-foreground sm:table-cell">
-                      {new Date(broadcast.created_at).toLocaleDateString()}
+                      {new Date(broadcast.created_at).toLocaleDateString(localeTag)}
                     </TableCell>
                   </TableRow>
                 );

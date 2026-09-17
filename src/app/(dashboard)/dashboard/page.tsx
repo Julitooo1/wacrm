@@ -35,10 +35,13 @@ import { ResponseTimeChart } from '@/components/dashboard/response-time-chart'
 import { ActivityFeed } from '@/components/dashboard/activity-feed'
 
 import { useTranslations } from 'next-intl'
+import { useDateLocale } from "@/i18n/date-locale";
+
 
 type RangeDays = 7 | 30 | 90
 
 export default function DashboardPage() {
+  const { localeTag } = useDateLocale();
   const t = useTranslations('Dashboard.page')
   const { defaultCurrency } = useAuth()
   const [metrics, setMetrics] = useState<MetricsBundle | null>(null)
@@ -139,7 +142,7 @@ export default function DashboardPage() {
           <>
             <MetricCard
               title={t('activeConversations')}
-              value={metrics.activeConversations.current.toLocaleString()}
+              value={metrics.activeConversations.current.toLocaleString(localeTag)}
               icon={MessageSquare}
               delta={{
                 sign: metrics.activeConversations.previous,
@@ -152,7 +155,7 @@ export default function DashboardPage() {
             />
             <MetricCard
               title={t('newContactsToday')}
-              value={metrics.newContactsToday.current.toLocaleString()}
+              value={metrics.newContactsToday.current.toLocaleString(localeTag)}
               icon={UserPlus}
               delta={{
                 sign:
@@ -172,7 +175,7 @@ export default function DashboardPage() {
             />
             <MetricCard
               title={t('messagesSentToday')}
-              value={metrics.messagesSentToday.current.toLocaleString()}
+              value={metrics.messagesSentToday.current.toLocaleString(localeTag)}
               icon={Send}
               delta={{
                 sign:

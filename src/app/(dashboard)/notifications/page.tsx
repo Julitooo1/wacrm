@@ -10,6 +10,10 @@ import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { useUiText } from "@/i18n/ui-text";
+import { useDateLocale } from "@/i18n/date-locale";
+
+
 
 // Icon per notification type. Only one type exists today
 // (conversation_assigned) but this keeps future types a one-line add.
@@ -18,6 +22,8 @@ const TYPE_ICON: Record<Notification["type"], typeof Bell> = {
 };
 
 export default function NotificationsPage() {
+  const { dateLocale } = useDateLocale();
+  const uiText = useUiText();
   const router = useRouter();
   const { accountId } = useAuth();
   const [notifications, setNotifications] = useState<Notification[] | null>(
@@ -104,11 +110,11 @@ export default function NotificationsPage() {
         .eq("id", id)
         .is("read_at", null);
       if (updateErr) {
-        toast.error("Failed to mark notification as read");
+        toast.error(uiText("Failed to mark notification as read"));
         load();
       }
     },
-    [load],
+    [load, uiText],
   );
 
   const handleClick = useCallback(
@@ -137,18 +143,16 @@ export default function NotificationsPage() {
       .is("read_at", null);
     setMarkingAll(false);
     if (updateErr) {
-      toast.error("Failed to mark all as read");
+      toast.error(uiText("Failed to mark all as read"));
       load();
     }
-  }, [unreadIds.length, load]);
+  }, [unreadIds.length, load, uiText]);
 
   if (error) {
     return (
       <div className="flex h-64 flex-col items-center justify-center gap-2">
         <p className="text-sm text-destructive">{error}</p>
-        <Button variant="outline" onClick={() => window.location.reload()}>
-          Retry
-        </Button>
+        <Button variant="outline" onClick={() => window.location.reload()}>{uiText("Retry")}</Button>
       </div>
     );
   }
@@ -165,10 +169,8 @@ export default function NotificationsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Notifications</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Conversations other teammates assign to you show up here.
-          </p>
+          <h1 className="text-2xl font-bold text-foreground">{uiText("Notifications")}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{uiText("Conversations other teammates assign to you show up here.")}</p>
         </div>
         <Button
           variant="outline"
@@ -180,9 +182,7 @@ export default function NotificationsPage() {
             <Loader2 className="h-4 w-4 animate-spin" />
           ) : (
             <CheckCheck className="h-4 w-4" />
-          )}
-          Mark all as read
-        </Button>
+          )}{uiText("Mark all as read")}</Button>
       </div>
 
       {notifications.length === 0 ? (
@@ -190,13 +190,8 @@ export default function NotificationsPage() {
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10">
             <Bell className="h-6 w-6 text-primary" />
           </div>
-          <p className="mt-3 text-sm font-medium text-foreground">
-            No notifications yet
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            You&apos;ll see an alert here when someone assigns you a
-            conversation.
-          </p>
+          <p className="mt-3 text-sm font-medium text-foreground">{uiText("No notifications yet")}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{uiText("You'll see an alert here when someone assigns you a conversation.")}</p>
         </div>
       ) : (
         <ul className="space-y-2">
@@ -241,7 +236,7 @@ export default function NotificationsPage() {
                       </span>
                       {isUnread && (
                         <span
-                          aria-label="Unread"
+                          aria-label={uiText("Unread")}
                           className="h-2 w-2 flex-shrink-0 rounded-full bg-primary"
                         />
                       )}
@@ -252,9 +247,9 @@ export default function NotificationsPage() {
                       </p>
                     )}
                     <p className="mt-1 text-[11px] text-muted-foreground/70">
-                      {formatDistanceToNow(new Date(n.created_at), {
+                      {formatDistanceToNow(new Date(n.created_at), { ...({
                         addSuffix: true,
-                      })}
+                      }), locale: dateLocale })}
                     </p>
                   </div>
                 </button>

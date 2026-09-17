@@ -21,6 +21,10 @@ import { useTranslations } from "next-intl";
 
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useUiText } from "@/i18n/ui-text";
+import { useDateLocale } from "@/i18n/date-locale";
+
+
 
 /**
  * Run history viewer.
@@ -96,6 +100,7 @@ const STATUS_META: Record<
 };
 
 export default function FlowRunsPage() {
+  const uiText = useUiText();
   const router = useRouter();
   const params = useParams<{ id: string }>();
   const t = useTranslations("Flows.logs");
@@ -118,7 +123,7 @@ export default function FlowRunsPage() {
           if (!cancelled) setNotFound(true);
           return;
         }
-        if (!res.ok) throw new Error(`Failed: ${res.status}`);
+        if (!res.ok) throw new Error(uiText(`Failed: ${res.status}`));
         const json = (await res.json()) as {
           flow: { id: string; name: string };
           runs: RunRow[];
@@ -132,7 +137,7 @@ export default function FlowRunsPage() {
       } catch (err) {
         if (!cancelled) {
           console.error(err);
-          toast.error(t("loadError"));
+          toast.error(uiText(t("loadError")));
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -141,7 +146,7 @@ export default function FlowRunsPage() {
     return () => {
       cancelled = true;
     };
-  }, [params.id]);
+  }, [params.id, uiText]);
 
   function toggle(runId: string) {
     setExpanded((prev) => {
@@ -224,14 +229,15 @@ function RunCard({
   onToggle: () => void;
   t: ReturnType<typeof useTranslations>;
 }) {
+  const { dateLocale } = useDateLocale();
   const meta = STATUS_META[run.status];
   const StatusIcon = meta.icon;
   const contactLabel =
     run.contact?.name?.trim() || run.contact?.phone || t("unknownContact");
   const duration = run.ended_at
-    ? formatDistanceToNow(new Date(run.ended_at), {
+    ? formatDistanceToNow(new Date(run.ended_at), { ...({
         addSuffix: false,
-      })
+      }), locale: dateLocale })
     : null;
   return (
     <div className="rounded-lg border border-border bg-card">
@@ -273,7 +279,7 @@ function RunCard({
             )}
           </div>
           <div className="mt-0.5 flex flex-wrap items-center gap-2 text-[11px] text-muted-foreground">
-            <span>{t("started", { time: format(new Date(run.started_at), "PP p") })}</span>
+            <span>{t("started", { time: format(new Date(run.started_at), "PP p", { locale: dateLocale }) })}</span>
             {run.reprompt_count > 0 && (
               <span>· {t("reprompts", { count: run.reprompt_count })}</span>
             )}
@@ -321,11 +327,12 @@ const EVENT_COLOR: Record<string, string> = {
 };
 
 function EventLine({ ev }: { ev: EventRow }) {
+  const { dateLocale } = useDateLocale();
   const cls = EVENT_COLOR[ev.event_type] ?? "text-muted-foreground";
   return (
     <div className="flex items-start gap-2 rounded-md px-2 py-1 text-xs">
       <span className="w-32 shrink-0 text-[10px] text-muted-foreground">
-        {format(new Date(ev.created_at), "HH:mm:ss")}
+        {format(new Date(ev.created_at), "HH:mm:ss", { locale: dateLocale })}
       </span>
       <span className={cn("w-32 shrink-0 font-mono text-[10px]", cls)}>
         {ev.event_type}

@@ -49,6 +49,8 @@ import { cn } from "@/lib/utils";
 import { uploadAccountMedia, MEDIA_MAX_BYTES } from "@/lib/storage/upload-media";
 import { slugify, type BuilderNode } from "../shared";
 import { NextNodeRow, NodeKeySelect, TextRow } from "./fields";
+import { useUiText } from "@/i18n/ui-text";
+
 
 interface NodeConfigFormProps {
   node: BuilderNode;
@@ -63,6 +65,7 @@ export function NodeConfigForm({
   showAdvanced,
   onUpdateConfig,
 }: NodeConfigFormProps) {
+  const uiText = useUiText();
   const t = useTranslations("Flows.builder.form");
   const cfg = node.config;
   switch (node.node_type) {
@@ -379,6 +382,7 @@ function SendListForm({
   showAdvanced: boolean;
   t: ReturnType<typeof useTranslations>;
 }) {
+  const uiText = useUiText();
   const sections = cfg.sections ?? [];
   const totalRows = sections.reduce((sum, s) => sum + s.rows.length, 0);
 
@@ -401,7 +405,7 @@ function SendListForm({
           rows: [
             {
               reply_id: `row_${totalRows + 1}`,
-              title: `Option ${totalRows + 1}`,
+              title: uiText(`Option ${totalRows + 1}`),
               next_node_key: "",
             },
           ],
@@ -438,7 +442,7 @@ function SendListForm({
                 ...s.rows,
                 {
                   reply_id: `row_${totalRows + 1}`,
-                  title: `Option ${totalRows + 1}`,
+                  title: uiText(`Option ${totalRows + 1}`),
                   next_node_key: "",
                 },
               ],
@@ -456,7 +460,7 @@ function SendListForm({
   return (
     <>
       <TextRow
-        label="Body text"
+        label={uiText("Body text")}
         value={cfg.text ?? ""}
         onChange={(v) => onUpdateConfig({ text: v })}
         rows={3}
@@ -498,7 +502,7 @@ function SendListForm({
                   size="sm"
                   onClick={() => removeSection(sIdx)}
                   className="shrink-0 text-red-400 hover:bg-red-500/10 hover:text-red-300"
-                  aria-label="Remove section"
+                  aria-label={uiText("Remove section")}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
@@ -616,6 +620,7 @@ function ConditionForm({
   onUpdateConfig: (patch: Record<string, unknown>) => void;
   t: ReturnType<typeof useTranslations>;
 }) {
+  const uiText = useUiText();
   const tags = useUserTags();
 
   const subject = cfg.subject ?? "var";
@@ -657,7 +662,7 @@ function ConditionForm({
               onValueChange={(v) => onUpdateConfig({ subject_key: v })}
             >
               <SelectTrigger className="bg-muted">
-                <SelectValue placeholder="Pick a tag…" />
+                <SelectValue placeholder={uiText("Pick a tag…")} />
               </SelectTrigger>
               <SelectContent>
                 {tags.map((t) => (
@@ -676,10 +681,10 @@ function ConditionForm({
                 <SelectValue placeholder={t("pickField")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="name">name</SelectItem>
-                <SelectItem value="email">email</SelectItem>
-                <SelectItem value="phone">phone</SelectItem>
-                <SelectItem value="company">company</SelectItem>
+                <SelectItem value="name">{uiText("name")}</SelectItem>
+                <SelectItem value="email">{uiText("email")}</SelectItem>
+                <SelectItem value="phone">{uiText("phone")}</SelectItem>
+                <SelectItem value="company">{uiText("company")}</SelectItem>
               </SelectContent>
             </Select>
           ) : (
@@ -775,6 +780,7 @@ function SetTagForm({
   onUpdateConfig: (patch: Record<string, unknown>) => void;
   t: ReturnType<typeof useTranslations>;
 }) {
+  const uiText = useUiText();
   const tags = useUserTags();
 
   return (
@@ -805,7 +811,7 @@ function SetTagForm({
               onValueChange={(v) => onUpdateConfig({ tag_id: v })}
             >
               <SelectTrigger className="bg-muted">
-                <SelectValue placeholder="Pick a tag…" />
+                <SelectValue placeholder={uiText("Pick a tag…")} />
               </SelectTrigger>
               <SelectContent>
                 {tags.map((t) => (
@@ -900,6 +906,7 @@ function SendMediaForm({
   onUpdateConfig: (patch: Record<string, unknown>) => void;
   t: ReturnType<typeof useTranslations>;
 }) {
+  const uiText = useUiText();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
@@ -913,7 +920,7 @@ function SendMediaForm({
     async (file: File) => {
       if (file.size > MEDIA_MAX_BYTES) {
         toast.error(
-          `File is ${(file.size / 1024 / 1024).toFixed(1)} MB — limit is 16 MB.`,
+          uiText(`File is ${(file.size / 1024 / 1024).toFixed(1)} MB — limit is 16 MB.`),
         );
         return;
       }
@@ -928,15 +935,15 @@ function SendMediaForm({
           media_url: publicUrl,
           filename: file.name,
         });
-        toast.success("File uploaded.");
+        toast.success(uiText("File uploaded."));
       } catch (err) {
-        const msg = err instanceof Error ? err.message : "Upload failed.";
-        toast.error(msg);
+        const msg = err instanceof Error ? err.message : uiText("Upload failed.");
+        toast.error(uiText(msg));
       } finally {
         setUploading(false);
       }
     },
-    [onUpdateConfig],
+    [onUpdateConfig, uiText],
   );
 
   const handleClear = () => {

@@ -38,6 +38,8 @@ import {
   Tag,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
+import { useUiText } from "@/i18n/ui-text";
+
 
 const DEFAULT_TAG_COLOR = '#3b82f6';
 const PREVIEW_LIMIT = 5;
@@ -126,6 +128,7 @@ export function ImportModal({
   onOpenChange,
   onImported,
 }: ImportModalProps) {
+  const uiText = useUiText();
   const t = useTranslations('Contacts.importModal');
   const supabase = createClient();
   const { accountId, canEditSettings } = useAuth();
@@ -176,7 +179,7 @@ export function ImportModal({
     } = parseContactCsv(text);
 
     if (rows.length === 0) {
-      toast.error(t('toastNoValidRows'));
+      toast.error(uiText(t('toastNoValidRows')));
       setParsedRows([]);
       setHasTagsColumn(false);
       setHasCompanyColumn(false);
@@ -214,9 +217,9 @@ export function ImportModal({
         data: { session },
       } = await supabase.auth.getSession();
       const user = session?.user;
-      if (!user) throw new Error('Not authenticated');
+      if (!user) throw new Error(uiText("Not authenticated"));
       if (!accountId)
-        throw new Error('Your profile is not linked to an account.');
+        throw new Error(uiText("Your profile is not linked to an account."));
 
       let imported = 0;
       let skipped = 0;
@@ -338,32 +341,32 @@ export function ImportModal({
           tagIdByKey
         );
       } catch {
-        toast.warning(t('toastTagsWarning'));
+        toast.warning(uiText(t('toastTagsWarning')));
       }
 
       setResult({ imported, skipped, failed, tagsAssigned });
       if (imported > 0) {
-        toast.success(t('toastImported', { count: imported }));
+        toast.success(uiText(t('toastImported', { count: imported })));
         onImported();
       }
       if (tagsAssigned > 0) {
-        toast.success(t('toastTagsAssigned', { count: tagsAssigned }));
+        toast.success(uiText(t('toastTagsAssigned', { count: tagsAssigned })));
       }
       if (skippedNames.length > 0) {
         const sample = skippedNames.slice(0, 3).join(', ');
         const more =
-          skippedNames.length > 3 ? ` (+${skippedNames.length - 3} more)` : '';
-        toast.info(t('toastTagsSkipped', { sample, more }));
+          skippedNames.length > 3 ? uiText(` (+${skippedNames.length - 3} more)`) : '';
+        toast.info(uiText(t('toastTagsSkipped', { sample, more })));
       }
       if (skipped > 0) {
-        toast.info(t('toastSkipped', { count: skipped }));
+        toast.info(uiText(t('toastSkipped', { count: skipped })));
       }
       if (failed > 0) {
-        toast.error(t('toastFailed', { count: failed }));
+        toast.error(uiText(t('toastFailed', { count: failed })));
       }
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : t('toastError');
-      toast.error(message);
+      toast.error(uiText(message));
     } finally {
       setImporting(false);
     }

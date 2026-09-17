@@ -24,6 +24,8 @@ import {
 } from "./message-media";
 import { InteractivePreview } from "@/components/interactive/interactive-preview";
 import { useTranslations } from "next-intl";
+import { useDateLocale } from "@/i18n/date-locale";
+
 
 interface MessageBubbleProps {
   message: Message;
@@ -223,10 +225,11 @@ export function MessageBubble({
   onToggleReaction,
   onOpenMedia,
 }: MessageBubbleProps) {
+  const { dateLocale } = useDateLocale();
   const t = useTranslations("Inbox.bubble");
 
   const isAgent = message.sender_type === "agent" || message.sender_type === "bot";
-  const time = format(new Date(message.created_at), "HH:mm");
+  const time = format(new Date(message.created_at), "HH:mm", { locale: dateLocale });
 
   // Row alignment + width cap are owned by <MessageActions> so its hover
   // group matches the bubble's content area, not the full row.

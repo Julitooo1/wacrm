@@ -15,6 +15,8 @@ import { cn } from "@/lib/utils";
 import type { Message } from "@/types";
 import { downloadMediaMessage } from "@/lib/media/download";
 import { useMediaBlobUrl } from "@/hooks/use-media-blob-url";
+import { useUiText } from "@/i18n/ui-text";
+
 
 /**
  * The media renderers behind `<MessageBubble>`'s image / video / audio /
@@ -54,6 +56,7 @@ export function MediaUnavailable({
  * put a spinner on every other attachment in the thread.
  */
 function useMediaDownload(message: Message, t: Translator) {
+  const uiText = useUiText();
   const [downloading, setDownloading] = useState(false);
 
   const download = useCallback(async () => {
@@ -62,11 +65,11 @@ function useMediaDownload(message: Message, t: Translator) {
     try {
       await downloadMediaMessage(message);
     } catch {
-      toast.error(t("downloadFailed"));
+      toast.error(uiText(t("downloadFailed")));
     } finally {
       setDownloading(false);
     }
-  }, [downloading, message, t]);
+  }, [downloading, message, t, uiText]);
 
   return { downloading, download };
 }

@@ -18,6 +18,8 @@ import {
 } from "@/components/ui/card";
 import { useTranslations } from "next-intl";
 import { SettingsPanelHead } from "./settings-panel-head";
+import { useUiText } from "@/i18n/ui-text";
+
 
 /**
  * Deals settings — account-wide default currency.
@@ -29,6 +31,7 @@ import { SettingsPanelHead } from "./settings-panel-head";
  * admins+, so non-admins see a disabled, read-only control.
  */
 export function DealsSettings() {
+  const uiText = useUiText();
   const supabase = createClient();
   const {
     accountId,
@@ -58,7 +61,7 @@ export function DealsSettings() {
       .update({ default_currency: selected })
       .eq("id", accountId);
     if (error) {
-      toast.error(t("saveFailed"));
+      toast.error(uiText(t("saveFailed")));
       setSaving(false);
       return;
     }
@@ -66,7 +69,7 @@ export function DealsSettings() {
     // and every total pick it up without a full reload.
     await refreshProfile();
     setSaving(false);
-    toast.success(t("saveSuccess"));
+    toast.success(uiText(t("saveSuccess")));
   }
 
   return (
