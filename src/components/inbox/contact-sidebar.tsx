@@ -1,4 +1,5 @@
 "use client";
+import { formatCurrency } from "@/lib/currency";
 
 import { useState, useEffect, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -233,8 +234,7 @@ export function ContactSidebar({ contact }: ContactSidebarProps) {
                     </p>
                     <div className="mt-1 flex items-center justify-between text-xs text-muted-foreground">
                       <span>
-                        {deal.currency ?? "$"}
-                        {deal.value.toLocaleString(localeTag)}
+                        {formatCurrency(deal.value, deal.currency)}
                       </span>
                       {deal.stage && (
                         <span

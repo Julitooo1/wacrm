@@ -11,7 +11,7 @@
  */
 
 /** App-wide fallback when no account/deal currency is available. */
-export const DEFAULT_CURRENCY = "USD";
+export const DEFAULT_CURRENCY = "PEN";
 
 export interface CurrencyOption {
   /** ISO-4217 code, e.g. "USD". Stored verbatim in the DB. */
@@ -28,6 +28,7 @@ export interface CurrencyOption {
  * list to offer more — nothing else needs to change.
  */
 export const CURRENCIES: CurrencyOption[] = [
+  { code: "PEN", label: "Peruvian Sol", symbol: "S/" },
   { code: "USD", label: "US Dollar", symbol: "$" },
   { code: "EUR", label: "Euro", symbol: "€" },
   { code: "GBP", label: "British Pound", symbol: "£" },
@@ -46,10 +47,9 @@ export const CURRENCIES: CurrencyOption[] = [
 ];
 
 /**
- * Format a deal value as a currency string. Whole-number output
- * (no minor units) — deal values are tracked to the dollar across
- * the app. `currency` defaults to USD so callers with nothing better
- * stay safe, but pass the account/deal currency wherever known.
+ * Format deal values. PEN retains céntimos and uses the Peruvian symbol.
+ * Other currencies retain the existing whole-number display.
+ * Pass the account/deal currency wherever known; PEN is the fallback.
  *
  * Total by design: `Intl.NumberFormat` throws a RangeError on a
  * structurally invalid currency code, and `deals.currency` carries
@@ -65,11 +65,11 @@ export function formatCurrency(
   const code = (currency || DEFAULT_CURRENCY).trim();
   const amount = Number(value) || 0;
   try {
-    return new Intl.NumberFormat(undefined, {
+    return new Intl.NumberFormat(code === "PEN" ? "es-PE" : undefined, {
       style: "currency",
       currency: code,
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
+      minimumFractionDigits: code === "PEN" ? 2 : 0,
+      maximumFractionDigits: code === "PEN" ? 2 : 0,
     }).format(amount);
   } catch {
     // Invalid ISO code — show the raw code + grouped number so the
@@ -91,7 +91,7 @@ export function formatCurrencyShort(
 ): string {
   const code = currency || DEFAULT_CURRENCY;
   const symbol = CURRENCIES.find((c) => c.code === code)?.symbol ?? `${code} `;
-  return `${symbol}${formatCompactNumber(value)}`;
+  return `${symbol}${code === "PEN" ? " " : ""}${formatCompactNumber(value)}`;
 }
 
 /**

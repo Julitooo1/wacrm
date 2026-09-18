@@ -63,7 +63,7 @@ export function AppearancePanel() {
         </h3>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {THEMES.map((tObj) => (
+          {THEMES.filter((item) => item.id === "insitelvia").map((tObj) => (
             <ThemeCard
               key={tObj.id}
               id={tObj.id}
@@ -73,6 +73,14 @@ export function AppearancePanel() {
               isActive={tObj.id === theme}
               onPick={() => setTheme(tObj.id)}
             />
+          ))}
+        </div>
+      </div>
+      <div className="mt-8 space-y-4">
+        <h3 className="text-sm font-semibold text-foreground">{uiText("Other colors")}</h3>
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {THEMES.filter((item) => item.id !== "insitelvia").map((item) => (
+            <ThemeCard key={item.id} {...item} isActive={item.id === theme} onPick={() => setTheme(item.id)} />
           ))}
         </div>
       </div>
@@ -161,7 +169,7 @@ function ThemeCard({
           aria-hidden
           className="h-8 w-8 shrink-0 rounded-full"
           style={{
-            background: swatch,
+            background: id === "insitelvia" ? "linear-gradient(135deg, #1B9FBB 50%, #4CAF50 50%)" : swatch,
             boxShadow: "inset 0 0 0 1px oklch(1 0 0 / 0.15)",
           }}
         />
@@ -183,6 +191,7 @@ function ThemeCard({
         aria-hidden
       >
         <span className="flex-1" style={{ background: swatch }} />
+        {id === "insitelvia" && <span className="flex-1" style={{ background: "#4CAF50" }} />}
         <span className="w-3 bg-muted-foreground/60" />
         <span className="w-3 bg-muted" />
         <span className="w-3 bg-card" />

@@ -14,7 +14,11 @@ describe("formatCurrency", () => {
     expect(out).not.toContain(".00");
   });
 
-  it("defaults to USD when no currency is given", () => {
+  it("defaults to PEN when no currency is given", () => {
+    expect(DEFAULT_CURRENCY).toBe("PEN");
+    expect(formatCurrency(1234.5).replace(/\s/g, "")).toBe("S/1,234.50");
+    expect(formatCurrencyShort(1500)).toBe("S/ 1.5k");
+    expect(CURRENCIES[0].code).toBe("PEN");
     expect(formatCurrency(10)).toBe(formatCurrency(10, DEFAULT_CURRENCY));
   });
 

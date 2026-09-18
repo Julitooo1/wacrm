@@ -1,9 +1,9 @@
 "use client";
 
-import { Suspense, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -15,7 +15,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { MessageSquare, UsersRound } from "lucide-react";
+import { Eye, EyeOff, MessageSquare, UsersRound } from "lucide-react";
 
 // `useSearchParams` opts the component out of static prerendering
 // unless it sits under a Suspense boundary. We split the form into
@@ -37,15 +37,39 @@ function LoginPageInner() {
   // page to accept rather than to /dashboard.
   const inviteToken = searchParams.get("invite");
   const t = useTranslations("LoginPage");
+  const locale = useLocale();
+  const revealLabel = locale === "es"
+    ? "Mantén presionado para ver la contraseña"
+    : "Hold to show password";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const supabase = createClient();
 
+  useEffect(() => {
+    const hidePassword = () => setShowPassword(false);
+    // Release outside the button, a cancelled touch, or leaving the window
+    // must never leave the password visible.
+    window.addEventListener("pointerup", hidePassword);
+    window.addEventListener("pointercancel", hidePassword);
+    window.addEventListener("keyup", hidePassword);
+    window.addEventListener("blur", hidePassword);
+    document.addEventListener("visibilitychange", hidePassword);
+    return () => {
+      window.removeEventListener("pointerup", hidePassword);
+      window.removeEventListener("pointercancel", hidePassword);
+      window.removeEventListener("keyup", hidePassword);
+      window.removeEventListener("blur", hidePassword);
+      document.removeEventListener("visibilitychange", hidePassword);
+    };
+  }, []);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    setShowPassword(false);
     setError(null);
     setLoading(true);
 
@@ -85,6 +109,9 @@ function LoginPageInner() {
               <MessageSquare className="h-6 w-6 text-primary" />
             )}
           </div>
+          <p className="text-2xl font-bold tracking-tight text-primary">
+            Insitelvia
+          </p>
           <CardTitle className="text-xl text-foreground">
             {inviteToken ? t('titleAccept') : t('titleWelcome')}
           </CardTitle>
@@ -129,15 +156,51 @@ function LoginPageInner() {
                   {t('forgotPassword')}
                 </Link>
               </div>
-              <Input
-                id="password"
-                type="password"
-                placeholder={t('passwordPlaceholder')}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="border-border bg-muted text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword && !loading ? "text" : "password"}
+                  autoComplete="current-password"
+                  placeholder={t('passwordPlaceholder')}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  className="border-border bg-muted pr-12 text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:ring-primary/20"
+                />
+                <button
+                  type="button"
+                  disabled={loading}
+                  aria-label={revealLabel}
+                  aria-controls="password"
+                  aria-pressed={showPassword && !loading}
+                  title={revealLabel}
+                  onPointerDown={(event) => {
+                    if (event.button !== 0 || !event.isPrimary) return;
+                    event.preventDefault();
+                    setShowPassword(true);
+                  }}
+                  onPointerUp={() => setShowPassword(false)}
+                  onPointerLeave={() => setShowPassword(false)}
+                  onPointerCancel={() => setShowPassword(false)}
+                  onLostPointerCapture={() => setShowPassword(false)}
+                  onBlur={() => setShowPassword(false)}
+                  onContextMenu={(event) => event.preventDefault()}
+                  onKeyDown={(event) => {
+                    if (event.key === " " || event.key === "Enter") {
+                      event.preventDefault();
+                      setShowPassword(true);
+                    } else if (event.key === "Escape") {
+                      setShowPassword(false);
+                    }
+                  }}
+                  onKeyUp={() => setShowPassword(false)}
+                  className="absolute inset-y-0 right-0 flex w-11 touch-none select-none items-center justify-center rounded-r-md text-muted-foreground transition-colors hover:text-primary focus-visible:outline-2 focus-visible:outline-primary disabled:opacity-50"
+                >
+                  {showPassword && !loading
+                    ? <EyeOff className="h-4 w-4" aria-hidden="true" />
+                    : <Eye className="h-4 w-4" aria-hidden="true" />}
+                </button>
+              </div>
             </div>
 
             <Button

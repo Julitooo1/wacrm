@@ -148,6 +148,28 @@ html[data-mode="light"] {
 /* ---- ACCENT: primary color ---- */
 
 :root,
+html[data-theme="insitelvia"] {
+  --primary: #1B9FBB;
+  --primary-foreground: #071b20;
+  --primary-hover: #4DB8D4;
+  --primary-soft: rgb(27 159 187 / 12%);
+  --primary-soft-2: rgb(27 159 187 / 22%);
+  --ring: #1B9FBB;
+  --chart-1: #1B9FBB;
+  --chart-2: #4CAF50;
+  --sidebar-primary: #1B9FBB;
+  --sidebar-primary-foreground: #071b20;
+  --sidebar-ring: #1B9FBB;
+}
+
+html[data-theme="insitelvia"][data-mode="light"] {
+  --primary: #08758D;
+  --primary-foreground: #ffffff;
+  --primary-hover: #09677b;
+  --sidebar-primary: #08758D;
+  --sidebar-primary-foreground: #ffffff;
+}
+
 html[data-theme="violet"] {
   --primary: oklch(0.526 0.247 293);
   --primary-foreground: oklch(0.985 0 0);
