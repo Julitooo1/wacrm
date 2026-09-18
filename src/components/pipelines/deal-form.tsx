@@ -1,4 +1,5 @@
 "use client";
+import { usePipelineLabel } from "@/i18n/pipeline-labels";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
@@ -28,7 +29,6 @@ import {
   X,
   Trash2,
   MessageSquare,
-  DollarSign,
   Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -55,6 +55,7 @@ export function DealForm({
   defaultStageId,
   onSaved,
 }: DealFormProps) {
+  const pipelineLabel = usePipelineLabel();
   const uiText = useUiText();
   const t = useTranslations("Pipelines.form");
   const supabase = createClient();
@@ -302,13 +303,13 @@ export function DealForm({
               <div className="grid gap-2">
                 <Label className="text-muted-foreground">{t("value")}</Label>
                 <div className="relative">
-                  <DollarSign className="absolute left-2 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                  <span aria-hidden="true" className="absolute left-2 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">{CURRENCIES.find((item) => item.code === currency)?.symbol ?? currency}</span>
                   <Input
                     type="number"
                     value={value}
                     onChange={(e) => setValue(e.target.value)}
                     placeholder="0"
-                    className="border-border bg-muted pl-7 text-foreground"
+                    className="border-border bg-muted pl-12 text-foreground"
                   />
                 </div>
               </div>
@@ -347,7 +348,7 @@ export function DealForm({
               >
                 {stages.map((s) => (
                   <option key={s.id} value={s.id}>
-                    {s.name}
+                    {pipelineLabel(s.name)}
                   </option>
                 ))}
               </select>

@@ -1,4 +1,5 @@
 "use client";
+import { usePipelineLabel } from "@/i18n/pipeline-labels";
 
 import { useMemo, useState } from "react";
 import {
@@ -201,6 +202,7 @@ function StageColumn({
   onAddDeal: (stageId: string) => void;
   onEditDeal: (deal: Deal) => void;
 }) {
+  const pipelineLabel = usePipelineLabel();
   const t = useTranslations("Pipelines.board");
   const { setNodeRef, isOver } = useDroppable({ id: stage.id });
 
@@ -219,7 +221,7 @@ function StageColumn({
       />
       <div className="flex items-center justify-between pt-3">
         <h3 className="truncate text-sm font-semibold text-foreground">
-          {stage.name}
+          {pipelineLabel(stage.name)}
         </h3>
         <span className="shrink-0 rounded-full bg-muted px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
           {deals.length}

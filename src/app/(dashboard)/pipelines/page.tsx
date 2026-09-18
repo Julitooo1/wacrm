@@ -1,4 +1,5 @@
 "use client";
+import { usePipelineLabel } from "@/i18n/pipeline-labels";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
@@ -48,6 +49,7 @@ const SPEC_DEFAULT_STAGES = [
 ];
 
 export default function PipelinesPage() {
+  const pipelineLabel = usePipelineLabel();
   const uiText = useUiText();
   const t = useTranslations("Pipelines.page");
   const supabase = createClient();
@@ -328,7 +330,7 @@ export default function PipelinesPage() {
             >
               <GitBranch className="h-4 w-4 text-primary" />
               <span className="font-semibold">
-                {selectedPipeline?.name ?? t("selectPipeline")}
+                {selectedPipeline ? pipelineLabel(selectedPipeline.name) : t("selectPipeline")}
               </span>
               <ChevronDown className="h-4 w-4 text-muted-foreground" />
             </DropdownMenuTrigger>
@@ -352,7 +354,7 @@ export default function PipelinesPage() {
                   }
                 >
                   <GitBranch className="mr-2 h-3.5 w-3.5" />
-                  {p.name}
+                  {pipelineLabel(p.name)}
                 </DropdownMenuItem>
               ))}
               <DropdownMenuSeparator className="bg-border" />
